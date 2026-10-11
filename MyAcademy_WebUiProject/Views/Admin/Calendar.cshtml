@@ -1,0 +1,94 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminSnapshot
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Fikstür takvimi";
+    ViewData["BodyClass"] = "tm-page-calendar";
+    var teams = Model.Teams.OrderBy(t => t.Name).ToList();
+}
+
+<div class="tm-page tm-cal">
+    <header class="tm-head">
+        <div class="tm-head__text">
+            <h1 class="tm-title">Fikstür takvimi</h1>
+            <p class="tm-lead">Bütün maçlar gün gün takvimde. Bir güne tıkla, o günün maçlarını gör; bir maça tıkla, düzenle. Boş güne maç eklemek de buradan.</p>
+        </div>
+        <div class="tm-head__actions">
+            <a class="tm-btn tm-btn--primary" href="/Admin/Matches?new=1" data-cal-new>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-plus" /></svg>
+                Yeni maç
+            </a>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <div class="tm-calbar">
+        <div class="tm-calbar__nav">
+            <button type="button" class="tm-iconbtn" data-cal-prev aria-label="Önceki ay">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chev-left" /></svg>
+            </button>
+            <h2 class="tm-calbar__title" aria-live="polite"><span data-cal-month>Ay</span> <small data-cal-year></small></h2>
+            <button type="button" class="tm-iconbtn" data-cal-next aria-label="Sonraki ay">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chev-right" /></svg>
+            </button>
+            <button type="button" class="tm-btn tm-btn--ghost tm-btn--small" data-cal-today>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-today" /></svg>
+                Bugün
+            </button>
+        </div>
+
+        <div class="tm-calbar__tools">
+            <label class="tm-field">
+                <span class="visually-hidden">Takım</span>
+                <select class="tm-input tm-select" data-cal-team>
+                    <option value="">Bütün takımlar</option>
+                    @foreach (var t in teams)
+                    {
+                        <option value="@t.Id">@t.Name</option>
+                    }
+                </select>
+            </label>
+            <div class="tm-seg" role="group" aria-label="Görünüm">
+                <button type="button" class="tm-seg__btn" data-cal-view="month" aria-pressed="true">Ay</button>
+                <button type="button" class="tm-seg__btn" data-cal-view="agenda" aria-pressed="false">Ajanda</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tm-calsum" data-cal-summary></div>
+
+    <div class="tm-calgrid">
+        <section class="tm-panel tm-month" aria-label="Aylık takvim" data-cal-month-view>
+            <div class="tm-month__head" aria-hidden="true">
+                <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+            </div>
+            <div class="tm-month__body" role="grid" data-cal-days></div>
+        </section>
+
+        <section class="tm-panel tm-agenda" aria-label="Ajanda" data-cal-agenda-view hidden>
+            <div data-cal-agenda></div>
+        </section>
+
+        <aside class="tm-panel tm-dayside" aria-live="polite" data-cal-day></aside>
+    </div>
+
+    <p class="tm-cal__legend">
+        <span class="tm-cal__key tm-cal__key--Tamamlandi">Bitti</span>
+        <span class="tm-cal__key tm-cal__key--Oynaniyor">Canlı</span>
+        <span class="tm-cal__key tm-cal__key--Planlandi">Planlı</span>
+        <span class="tm-cal__key tm-cal__key--Ertelendi">Ertelendi</span>
+        <span class="tm-cal__key tm-cal__key--late">Sonuç bekliyor</span>
+    </p>
+</div>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Teams, matches = Model.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-calendar.js" asp-append-version="true"></script>
+}

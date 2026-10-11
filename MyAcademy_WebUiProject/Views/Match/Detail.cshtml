@@ -1,0 +1,115 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@{
+    var m = Model.Match;
+    ViewData["Title"] = m != null
+        ? (m.Status == "Tamamlandi" || m.Status == "Oynaniyor") && m.HomeScore.HasValue && m.AwayScore.HasValue
+            ? $"{m.HomeTeamName} {m.HomeScore}-{m.AwayScore} {m.AwayTeamName}"
+            : $"{m.HomeTeamName} - {m.AwayTeamName}"
+        : "Maç bulunamadı";
+    ViewData["BodyClass"] = "match-page";
+    ViewData["Description"] = m != null
+        ? $"{m.HomeTeamName} - {m.AwayTeamName}, {m.Week}. hafta, {m.Stadium}: canlı skor, kazanma ihtimali, form ve tabloya etkisi."
+        : "Aradığın maç bulunamadı.";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/match-detail.css" asp-append-version="true" />
+}
+
+@if (m == null)
+{
+    <section class="da-pagehead md-missing">
+        <partial name="_StageBackdrop" />
+        <div class="da-wrap">
+            <p class="da-kicker"><i></i><span>Maç merkezi</span></p>
+            <h1 class="da-pagehead__title">Maç bulunamadı</h1>
+            <p class="da-pagehead__lead">Bu maç silinmiş ya da bağlantı hatalı olabilir. Fikstürden haftanın maçlarına göz atabilirsin.</p>
+            <div class="md-missing__actions">
+                <a class="da-btn da-btn--primary" asp-controller="Fixtures" asp-action="Index"><svg aria-hidden="true"><use href="#i-calendar" /></svg>Fikstüre git</a>
+                <a class="da-btn" asp-controller="Home" asp-action="Index"><svg aria-hidden="true"><use href="#i-home" /></svg>Ana sayfa</a>
+            </div>
+        </div>
+    </section>
+    <partial name="_SiteError" />
+}
+else
+{
+    <!-- ===================== Skor sahnesi ===================== -->
+    <section class="md-hero" data-hero aria-labelledby="mdTitle">
+        <div class="md-hero__wash" aria-hidden="true"></div>
+        <partial name="_StageBackdrop" />
+        <div class="md-hero__marks" aria-hidden="true" data-marks></div>
+
+        <div class="da-wrap md-hero__inner">
+            <nav class="da-crumbs" aria-label="Konum">
+                <a asp-controller="Fixtures" asp-action="Index">Fikstür</a>
+                <svg aria-hidden="true"><use href="#i-chev-right" /></svg>
+                <a href="/Fixtures?week=@m.Week">@m.Week. hafta</a>
+                <svg aria-hidden="true"><use href="#i-chev-right" /></svg>
+                <span aria-current="page">@m.HomeTeamName - @m.AwayTeamName</span>
+            </nav>
+
+            <p class="md-derby" data-derby hidden><svg aria-hidden="true"><use href="#i-fire" /></svg><span data-derby-text></span></p>
+
+            <h1 class="visually-hidden" id="mdTitle">@ViewData["Title"]</h1>
+            <div class="md-board" data-board></div>
+            <ul class="md-facts" data-facts></ul>
+            <div class="md-share-wrap">
+                <button type="button" class="da-btn da-btn--small" data-share-match>
+                    <svg aria-hidden="true"><use href="#i-share" /></svg>
+                    Maç kartını paylaş
+                </button>
+                @if (m.Status == "Tamamlandi")
+                {
+                    <button type="button" class="da-btn da-btn--small da-btn--primary" data-story-open>
+                        <svg aria-hidden="true"><use href="#i-film" /></svg>
+                        Maç hikayesini izle
+                    </button>
+                    <button type="button" class="da-btn da-btn--small md-reel-btn" data-reel-open>
+                        <svg aria-hidden="true"><use href="#i-play" /></svg>
+                        Özet videosu oluştur
+                    </button>
+                }
+            </div>
+        </div>
+    </section>
+
+    <nav class="md-tabs" data-tabs aria-label="Maç merkezi bölümleri">
+        <div class="da-wrap md-tabs__inner">
+            <a href="#ihtimal" data-tab="ihtimal">Kazanma ihtimali</a>
+            <a href="#akis" data-tab="akis" data-feed-tab hidden>Canlı akış</a>
+            <a href="#form" data-tab="form">Form</a>
+            <a href="#karsilastirma" data-tab="karsilastirma">Karşılaştırma</a>
+            <a href="#tablo" data-tab="tablo">Tabloya etkisi</a>
+            <a href="#hafta" data-tab="hafta">Haftanın maçları</a>
+        </div>
+    </nav>
+
+    <partial name="_SiteError" />
+
+    <div class="da-wrap md-body">
+        <div class="md-grid">
+            <div class="md-main">
+                <section class="da-panel md-prob" id="ihtimal" data-prob data-reveal aria-live="polite"></section>
+                <section class="da-panel md-feed" id="akis" data-feed hidden aria-live="polite"></section>
+                <section class="da-panel md-formpanel" id="form" data-form data-reveal></section>
+                <section class="da-panel md-compare" id="karsilastirma" data-compare data-reveal></section>
+            </div>
+            <aside class="md-side">
+                <section class="da-panel md-impact" id="tablo" data-impact data-reveal aria-live="polite"></section>
+                <section class="da-panel md-h2h" data-h2h data-reveal></section>
+                <section class="da-panel md-week" id="hafta" data-week data-reveal></section>
+            </aside>
+        </div>
+    </div>
+
+    <partial name="_SiteSeed" />
+}
+
+@section Scripts {
+    @if (m != null)
+    {
+        <script>window.DA_MATCH = @m.Id;</script>
+        <script src="~/js/match-detail.js" asp-append-version="true"></script>
+    }
+}

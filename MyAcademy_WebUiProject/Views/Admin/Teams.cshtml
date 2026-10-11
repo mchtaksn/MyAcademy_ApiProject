@@ -1,0 +1,190 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminSnapshot
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Takımlar";
+    ViewData["BodyClass"] = "tm-page-teams";
+
+    var teams = Model.Teams;
+    var cities = teams.Select(t => t.City).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c).ToList();
+    var noLogo = teams.Count(t => string.IsNullOrWhiteSpace(t.LogoUrl));
+    var idle = teams.Count(t => t.MatchCount == 0);
+}
+
+<div class="tm-page">
+    <header class="tm-head">
+        <div class="tm-head__text">
+            <h1 class="tm-title">Takımlar</h1>
+            <p class="tm-lead">Ligdeki kulüpleri ekle, bilgilerini düzenle. Bir takımı silmek için önce maçlarını silmen gerekir.</p>
+        </div>
+        <div class="tm-head__actions">
+            <button type="button" class="tm-btn tm-btn--primary" data-team-new>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-plus" /></svg>
+                Yeni takım
+            </button>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <!-- Özet: tıklanınca o filtreyi uygular -->
+    <div class="tm-quick" role="group" aria-label="Hızlı filtreler">
+        <button type="button" class="tm-quick__item" data-quick="all" aria-pressed="true">
+            <strong data-quick-count="all">@teams.Count</strong><span>Takım</span>
+        </button>
+        <div class="tm-quick__item tm-quick__item--static">
+            <strong data-quick-count="cities">@cities.Count</strong><span>Şehir</span>
+        </div>
+        <button type="button" class="tm-quick__item tm-quick__item--warn" data-quick="nologo" aria-pressed="false">
+            <strong data-quick-count="nologo">@noLogo</strong><span>Logosu eksik</span>
+        </button>
+        <button type="button" class="tm-quick__item tm-quick__item--info" data-quick="idle" aria-pressed="false">
+            <strong data-quick-count="idle">@idle</strong><span>Fikstürde yok</span>
+        </button>
+    </div>
+
+    <section class="tm-panel tm-panel--flush" aria-label="Takım listesi">
+        <div class="tm-toolbar">
+            <label class="tm-field tm-field--search">
+                <span class="visually-hidden">Takım ara</span>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-search" /></svg>
+                <input class="tm-input" type="search" placeholder="Takım, şehir ya da stadyum ara" autocomplete="off" data-team-search>
+            </label>
+            <label class="tm-field">
+                <span class="visually-hidden">Şehir</span>
+                <select class="tm-input tm-select" data-team-city>
+                    <option value="">Tüm şehirler</option>
+                    @foreach (var c in cities)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </label>
+            <label class="tm-field">
+                <span class="visually-hidden">Sıralama</span>
+                <select class="tm-input tm-select" data-team-sort>
+                    <option value="name">Ada göre</option>
+                    <option value="city">Şehre göre</option>
+                    <option value="matches">Maç sayısına göre</option>
+                    <option value="id">Ekleme sırasına göre</option>
+                </select>
+            </label>
+            <div class="tm-seg tm-seg--icons" role="group" aria-label="Görünüm">
+                <button type="button" class="tm-seg__btn" data-view="grid" aria-pressed="true" title="Kart görünümü">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-grid" /></svg><span class="visually-hidden">Kart görünümü</span>
+                </button>
+                <button type="button" class="tm-seg__btn" data-view="table" aria-pressed="false" title="Tablo görünümü">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-rows" /></svg><span class="visually-hidden">Tablo görünümü</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Kart görünümü -->
+        <div class="tm-teamgrid" data-team-grid></div>
+
+        <!-- Tablo görünümü -->
+        <div class="tm-tablewrap" data-team-tablewrap hidden>
+            <table class="tm-table">
+                <caption class="visually-hidden">Takım listesi</caption>
+                <thead>
+                    <tr>
+                        <th scope="col" class="tm-col-id">ID</th>
+                        <th scope="col">Takım</th>
+                        <th scope="col">Şehir</th>
+                        <th scope="col">Stadyum</th>
+                        <th scope="col" class="tm-col-num">Maç</th>
+                        <th scope="col" class="tm-col-actions"><span class="visually-hidden">İşlemler</span></th>
+                    </tr>
+                </thead>
+                <tbody data-team-rows></tbody>
+            </table>
+        </div>
+
+        <div class="tm-empty-state" data-team-empty hidden>
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-shield" /></svg>
+            <strong>Bu filtreyle eşleşen takım yok</strong>
+            <p>Aramayı temizle ya da başka bir şehir seç.</p>
+            <button type="button" class="tm-btn tm-btn--ghost tm-btn--small" data-team-reset>Filtreleri temizle</button>
+        </div>
+
+        <footer class="tm-panel__foot">
+            <span data-team-count></span>
+            <span>Serie A'da 20 takım yer alır</span>
+        </footer>
+    </section>
+</div>
+
+<!-- ===================== Takım formu ===================== -->
+<dialog class="tm-modal" id="tmTeamModal" aria-labelledby="tmTeamModalTitle">
+    <form class="tm-modal__form" data-team-form novalidate>
+        <header class="tm-modal__head">
+            <h2 class="tm-modal__title" id="tmTeamModalTitle" data-team-modal-title>Yeni takım</h2>
+            <button type="button" class="tm-iconbtn" data-modal-close aria-label="Kapat">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-x" /></svg>
+            </button>
+        </header>
+
+        <div class="tm-modal__body">
+            <!-- Canlı önizleme -->
+            <div class="tm-teampreview" aria-live="polite">
+                <div class="tm-teampreview__crest" data-preview-crest></div>
+                <div class="tm-teampreview__text">
+                    <strong data-preview-name>Takım adı</strong>
+                    <span data-preview-meta>Şehir ve stadyum</span>
+                </div>
+                <span class="tm-teampreview__code" data-preview-code aria-hidden="true">---</span>
+            </div>
+
+            <div class="tm-alert" data-form-alert role="alert" hidden></div>
+            <input type="hidden" name="id">
+
+            <div class="tm-form-grid">
+                <div class="tm-formfield tm-span-2" data-field="name">
+                    <label class="tm-label" for="tmTeamName">Takım adı</label>
+                    <input class="tm-input" id="tmTeamName" name="name" type="text" maxlength="40" autocomplete="off" placeholder="Örn. Sampdoria" required>
+                    <p class="tm-error" data-error-for="name"></p>
+                </div>
+                <div class="tm-formfield" data-field="city">
+                    <label class="tm-label" for="tmTeamCity">Şehir</label>
+                    <input class="tm-input" id="tmTeamCity" name="city" type="text" maxlength="40" autocomplete="off" placeholder="Örn. Genova" list="tmCityList" required>
+                    <datalist id="tmCityList">
+                        @foreach (var c in cities)
+                        {
+                            <option value="@c"></option>
+                        }
+                    </datalist>
+                    <p class="tm-error" data-error-for="city"></p>
+                </div>
+                <div class="tm-formfield" data-field="stadium">
+                    <label class="tm-label" for="tmTeamStadium">Stadyum</label>
+                    <input class="tm-input" id="tmTeamStadium" name="stadium" type="text" maxlength="80" autocomplete="off" placeholder="Örn. Stadio Luigi Ferraris" required>
+                    <p class="tm-error" data-error-for="stadium"></p>
+                </div>
+                <div class="tm-formfield tm-span-2" data-field="logoUrl">
+                    <label class="tm-label" for="tmTeamLogo">Logo adresi <span class="tm-label__opt">isteğe bağlı</span></label>
+                    <input class="tm-input" id="tmTeamLogo" name="logoUrl" type="url" maxlength="500" autocomplete="off" placeholder="https://...">
+                    <p class="tm-hint" data-logo-hint>Boş bırakırsan sitede takım adının ilk üç harfi görünür.</p>
+                    <p class="tm-error" data-error-for="logoUrl"></p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="tm-modal__foot">
+            <button type="button" class="tm-btn tm-btn--ghost" data-modal-close>Vazgeç</button>
+            <button type="submit" class="tm-btn tm-btn--primary" data-submit>
+                <span data-submit-label>Takımı ekle</span>
+            </button>
+        </footer>
+    </form>
+</dialog>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Teams, matches = Model.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-teams.js" asp-append-version="true"></script>
+}

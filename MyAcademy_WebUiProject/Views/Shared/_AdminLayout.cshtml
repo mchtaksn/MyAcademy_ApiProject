@@ -1,0 +1,264 @@
+﻿@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Kontrol paneli";
+    string NavClass(string name) => string.Equals(action, name, StringComparison.OrdinalIgnoreCase) ? "tm-nav__link is-active" : "tm-nav__link";
+    var pageIcon = action.ToLowerInvariant() switch
+    {
+        "live" => "tm-i-live",
+        "matches" => "tm-i-ball",
+        "teams" => "tm-i-shield",
+        "standings" => "tm-i-trophy",
+        "calendar" => "tm-i-calendar",
+        "stats" => "tm-i-chart",
+        _ => "tm-i-board"
+    };
+    string? Current(string name) => string.Equals(action, name, StringComparison.OrdinalIgnoreCase) ? "page" : null;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>@pageTitle – Teknik Masa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-league.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="tm @ViewData["BodyClass"]">
+    @Html.AntiForgeryToken()
+    <a class="tm-skip" href="#tm-main">İçeriğe geç</a>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <symbol id="tm-i-board" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M9 20h6M12 16v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /><circle cx="8" cy="10" r="1.2" fill="currentColor" /><circle cx="12" cy="10" r="1.2" fill="currentColor" /><circle cx="16" cy="10" r="1.2" fill="currentColor" /></symbol>
+        <symbol id="tm-i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M12 7.6l3.3 2.4-1.3 3.8h-4l-1.3-3.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0V4z" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M12 12v4M9 20h6M10 16h4v2.5a2 2 0 0 1-4 0z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M4 9.5h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-home" viewBox="0 0 24 24"><path d="M4 11.5L12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.9" /><path d="M20 20l-4-4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.7" /></symbol>
+        <symbol id="tm-i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7" /></symbol>
+        <symbol id="tm-i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M12 10v4.5M12 17.2v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M12 11v5M12 8v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><circle cx="12" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7" /></symbol>
+        <symbol id="tm-i-stadium" viewBox="0 0 24 24"><ellipse cx="12" cy="9" rx="9" ry="3.5" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M3 9v6c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5V9" fill="none" stroke="currentColor" stroke-width="1.7" /></symbol>
+        <symbol id="tm-i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7" /><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7" /><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7" /><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7" /></symbol>
+        <symbol id="tm-i-rows" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-whistle" viewBox="0 0 24 24"><circle cx="9" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M13 10.5L20 7v4l-5.2 1.6M5.5 6L7 8M9 4.5V7M12.5 6L11 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-chev-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-chev-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-enter" viewBox="0 0 24 24"><path d="M19 5v6a3 3 0 0 1-3 3H6M10 10l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6" fill="currentColor" /><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-chart" viewBox="0 0 24 24"><path d="M4 20h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /><rect x="5.5" y="11" width="3" height="6.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.7" /><rect x="10.5" y="6" width="3" height="11.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.7" /><rect x="15.5" y="9" width="3" height="8.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.7" /></symbol>
+        <symbol id="tm-i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></symbol>
+        <symbol id="tm-i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor" /></symbol>
+        <symbol id="tm-i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" /><rect x="13.7" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" /></symbol>
+        <symbol id="tm-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4.5h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-up" viewBox="0 0 24 24"><path d="M12 6l6 8H6z" fill="currentColor" /></symbol>
+        <symbol id="tm-i-down" viewBox="0 0 24 24"><path d="M12 18l6-8H6z" fill="currentColor" /></symbol>
+        <symbol id="tm-i-chev-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-chev-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-swap" viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-fire" viewBox="0 0 24 24"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.4 2.6-5.3 3.8-8.3.3 2.1 1.4 3.3 2.6 3.9-.1-2.9 1.2-5.4 3.4-6.9-.3 2.7.9 4.3 2 5.9 1 1.5 1.7 3 1.7 5.3 0 3.7-3.1 6.3-7 6.3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-shieldcheck" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M8.8 12l2.2 2.2 4.2-4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7" /><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.7" /><circle cx="12" cy="12" r="1.3" fill="currentColor" /></symbol>
+        <symbol id="tm-i-wand" viewBox="0 0 24 24"><path d="M4 20L15 9M13 7l2-2 4 4-2 2z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M7 3.5v3M5.5 5h3M18.5 14v3M17 15.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></symbol>
+        <symbol id="tm-i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="tm-i-today" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M4 9.5h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /><rect x="8" y="12.5" width="4" height="4" rx="1" fill="currentColor" /></symbol>
+    </svg>
+
+    <div class="tm-ambient" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="tm-progress" aria-hidden="true" data-progress></div>
+
+    <!-- ===================== Yan menü ===================== -->
+    <aside class="tm-side" id="tmSide" aria-label="Yönetim menüsü">
+        <span class="tm-side__flag" aria-hidden="true"></span>
+
+        <a class="tm-brand" asp-controller="Admin" asp-action="Index">
+            <span class="da-board tm-brand__board" aria-hidden="true">
+                <span class="da-led da-led--xs" data-led-static="90+" data-led-tones="green,green,red"></span>
+            </span>
+            <span class="tm-brand__text">
+                <strong>Teknik Masa</strong>
+                <small>Doksan Artı yönetimi</small>
+            </span>
+        </a>
+
+        <nav class="tm-nav">
+            <p class="tm-nav__label">Masa</p>
+            <a class="@NavClass("Index")" aria-current="@Current("Index")" asp-controller="Admin" asp-action="Index">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-board" /></svg>
+                <span>Kontrol paneli</span>
+            </a>
+            <a class="@NavClass("Live")" aria-current="@Current("Live")" asp-controller="Admin" asp-action="Live">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-live" /></svg>
+                <span>Canlı masa</span>
+                <span class="tm-nav__badge tm-nav__badge--live" data-nav-live hidden></span>
+            </a>
+
+            <p class="tm-nav__label">Yönetim</p>
+            <a class="@NavClass("Matches")" aria-current="@Current("Matches")" asp-controller="Admin" asp-action="Matches">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-ball" /></svg>
+                <span>Maçlar</span>
+                <span class="tm-nav__badge tm-nav__badge--warn" data-nav-overdue hidden></span>
+            </a>
+            <a class="@NavClass("Teams")" aria-current="@Current("Teams")" asp-controller="Admin" asp-action="Teams">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-shield" /></svg>
+                <span>Takımlar</span>
+                <span class="tm-nav__badge" data-nav-teams hidden></span>
+            </a>
+
+            <p class="tm-nav__label">Lig</p>
+            <a class="@NavClass("Standings")" aria-current="@Current("Standings")" asp-controller="Admin" asp-action="Standings">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-trophy" /></svg>
+                <span>Puan durumu</span>
+            </a>
+            <a class="@NavClass("Calendar")" aria-current="@Current("Calendar")" asp-controller="Admin" asp-action="Calendar">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-calendar" /></svg>
+                <span>Fikstür takvimi</span>
+            </a>
+            <a class="@NavClass("Stats")" aria-current="@Current("Stats")" asp-controller="Admin" asp-action="Stats">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chart" /></svg>
+                <span>İstatistikler</span>
+            </a>
+        </nav>
+
+        <div class="tm-side__site">
+            <p class="tm-nav__label">Sitede aç</p>
+            <div class="tm-side__sitelinks">
+                <a asp-controller="Home" asp-action="Index" target="_blank" rel="noopener" title="Ana sayfa (yeni sekme)">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-home" /></svg><span>Ana sayfa</span>
+                </a>
+                <a asp-controller="Standings" asp-action="Index" target="_blank" rel="noopener" title="Puan durumu (yeni sekme)">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-trophy" /></svg><span>Puan</span>
+                </a>
+                <a asp-controller="Fixtures" asp-action="Index" target="_blank" rel="noopener" title="Fikstür (yeni sekme)">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-calendar" /></svg><span>Fikstür</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="tm-side__foot">
+            <svg class="tm-side__pitch" viewBox="0 0 240 150" aria-hidden="true" focusable="false">
+                <path d="M10 10H230V140H10Z M120 10V140 M100 75A20 20 0 1 0 140 75A20 20 0 1 0 100 75 M10 45H40V105H10 M230 45H200V105H230" />
+            </svg>
+            <span class="tm-side__season">Serie A</span>
+            <strong class="tm-side__year">Sezon 2026/27</strong>
+        </div>
+    </aside>
+    <div class="tm-scrim" data-side-close></div>
+
+    <!-- ===================== Ana alan ===================== -->
+    <div class="tm-shell">
+        <header class="tm-top">
+            <button type="button" class="tm-iconbtn tm-top__menu" data-side-toggle aria-controls="tmSide" aria-expanded="false" aria-label="Menüyü aç">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-menu" /></svg>
+            </button>
+
+            <div class="tm-top__title">
+                <span class="tm-top__icon" aria-hidden="true"><svg class="tm-icon"><use href="#@pageIcon" /></svg></span>
+                <span class="tm-top__crumb">
+                    <span>Teknik Masa</span>
+                    <strong>@pageTitle</strong>
+                </span>
+            </div>
+
+            <button type="button" class="tm-search" data-cmdk-open>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-search" /></svg>
+                <span>Takım, maç ya da sayfa ara</span>
+                <kbd>Ctrl K</kbd>
+            </button>
+
+            <div class="da-clock tm-top__clock" data-clock title="Serie A maçları Roma saatiyle oynanır">
+                <span class="da-clock__label">Roma</span>
+                <span class="da-clock__time" data-clock-time>--:--</span>
+            </div>
+
+            <a class="tm-btn tm-btn--ghost tm-top__site" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-external" /></svg>
+                <span>Siteyi aç</span>
+            </a>
+        </header>
+
+        <main class="tm-main" id="tm-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- ===================== Kırmızı kart (silme onayı) ===================== -->
+    <dialog class="tm-redcard" id="tmRedCard" aria-labelledby="tmRedCardTitle">
+        <form method="dialog" class="tm-redcard__inner">
+            <div class="tm-redcard__stage" aria-hidden="true">
+                <span class="tm-redcard__card"><span></span></span>
+            </div>
+            <div class="tm-redcard__body">
+                <h2 class="tm-redcard__title" id="tmRedCardTitle" data-redcard-title>Kaydı sil</h2>
+                <p class="tm-redcard__text" data-redcard-text></p>
+                <p class="tm-redcard__error" data-redcard-error hidden></p>
+            </div>
+            <div class="tm-redcard__actions">
+                <button type="submit" value="cancel" class="tm-btn tm-btn--ghost" data-redcard-cancel>Vazgeç</button>
+                <button type="button" class="tm-btn tm-btn--danger" data-redcard-confirm>
+                    <span data-redcard-confirm-label>Sil</span>
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- ===================== Genel onay ===================== -->
+    <dialog class="tm-confirm" id="tmConfirm" aria-labelledby="tmConfirmTitle">
+        <form method="dialog" class="tm-confirm__inner">
+            <span class="tm-confirm__icon" aria-hidden="true"><svg class="tm-icon"><use href="#tm-i-whistle" /></svg></span>
+            <h2 class="tm-confirm__title" id="tmConfirmTitle" data-confirm-title>Emin misin?</h2>
+            <div class="tm-confirm__text" data-confirm-text></div>
+            <p class="tm-redcard__error" data-confirm-error hidden></p>
+            <div class="tm-confirm__actions">
+                <button type="submit" value="cancel" class="tm-btn tm-btn--ghost" data-confirm-cancel>Vazgeç</button>
+                <button type="button" class="tm-btn tm-btn--primary" data-confirm-ok><span data-confirm-label>Onayla</span></button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- ===================== Hızlı arama (Ctrl+K) ===================== -->
+    <dialog class="tm-cmdk" id="tmCmdk" aria-label="Hızlı arama">
+        <div class="tm-cmdk__box">
+            <label class="tm-cmdk__field">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-search" /></svg>
+                <span class="visually-hidden">Ara</span>
+                <input type="text" placeholder="Takım, maç ya da sayfa ara" autocomplete="off" spellcheck="false"
+                       role="combobox" aria-expanded="true" aria-controls="tmCmdkList" aria-autocomplete="list" data-cmdk-input>
+                <kbd>Esc</kbd>
+            </label>
+            <div class="tm-cmdk__list" id="tmCmdkList" role="listbox" data-cmdk-list></div>
+            <div class="tm-cmdk__foot">
+                <span><kbd>↑</kbd><kbd>↓</kbd> seç</span>
+                <span><kbd>Enter</kbd> aç</span>
+                <span><kbd>Esc</kbd> kapat</span>
+            </div>
+        </div>
+    </dialog>
+
+    <div class="tm-toasts" data-toasts aria-live="polite" aria-atomic="false"></div>
+
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/admin-core.js" asp-append-version="true"></script>
+    <script src="~/js/admin-league.js" asp-append-version="true"></script>
+    <script src="~/js/admin-charts.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

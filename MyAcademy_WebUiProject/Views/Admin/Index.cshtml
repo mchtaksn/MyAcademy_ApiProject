@@ -1,0 +1,556 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminDashboardViewModel
+@using MyAcademy_WebUiProject.Models.Admin
+@using MyAcademy_WebUiProject.Models
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Kontrol paneli";
+    ViewData["BodyClass"] = "tm-page-dashboard";
+
+    var tr = new System.Globalization.CultureInfo("tr-TR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var now = DateTime.Now;
+    var week = Model.ActiveWeekSummary;
+    var expected = Model.ExpectedMatchesPerWeek;
+    var emptySlots = Math.Max(0, expected - Model.ActiveWeekMatches.Count);
+    var weekText = Model.ActiveWeek.ToString("00");
+
+    var greeting = now.Hour switch
+    {
+        >= 5 and < 11 => "Günaydın",
+        >= 11 and < 17 => "İyi günler",
+        >= 17 and < 22 => "İyi akşamlar",
+        _ => "İyi geceler"
+    };
+
+    // Haftanın saati geçmiş ama hâlâ planlı maçları
+    var weekOverdue = Model.ActiveWeekMatches.Count(m => m.Status == MatchStatuses.Planned && m.MatchDate.AddHours(2) < now);
+    var weekUpcoming = week.Planned - weekOverdue;
+
+    // Özet cümlesi
+    var parts = new List<string>();
+    if (week.Live > 0) parts.Add($"{week.Live} maç canlı");
+    if (weekOverdue > 0) parts.Add($"{weekOverdue} maç sonuç bekliyor");
+    if (weekUpcoming > 0) parts.Add($"{weekUpcoming} maç oynanacak");
+    if (week.Finished > 0) parts.Add($"{week.Finished} maç bitti");
+    if (week.Postponed > 0) parts.Add($"{week.Postponed} maç ertelendi");
+    var summary = parts.Count > 0 ? string.Join(", ", parts) + "." : "Bu haftaya henüz maç eklenmedi.";
+
+    // Sezon: çift devreli ligde her takım diğerleriyle iki kez oynar
+    var seasonTotal = Math.Max(1, Model.TeamCount * Math.Max(0, Model.TeamCount - 1));
+    var seasonRatio = Math.Min(1.0, (double)Model.FinishedCount / seasonTotal);
+    var seasonPct = Math.Round(seasonRatio * 100, 1);
+    var weekRatio = expected > 0 ? Math.Min(1.0, (double)week.Finished / expected) : 0;
+    var overdueCount = Model.Snapshot.Matches.Count(m => m.Status == MatchStatuses.Planned && m.MatchDate.AddHours(2) < now);
+
+    // Sahnede gösterilecek maç: önce canlı, yoksa sıradaki
+    FixtureItemViewModel? featured = Model.LiveMatches.FirstOrDefault() ?? Model.NextMatch;
+    var featuredLive = featured != null && featured.Status == MatchStatuses.Live;
+
+    // Kayan tabela: canlılar, son sonuçlar, sıradaki maçlar
+    var tickerLive = Model.LiveMatches.Take(4).ToList();
+    var tickerResults = Model.LatestResults.Take(5).ToList();
+    var tickerNext = Model.Snapshot.Matches
+        .Where(m => m.Status == MatchStatuses.Planned && m.MatchDate >= now)
+        .OrderBy(m => m.MatchDate).Take(4).ToList();
+}
+
+<div class="tm-page tm-dash2">
+
+    <!-- ===================== Kayan LED tabela ===================== -->
+    <div class="tm-ticker" data-ticker aria-label="Son durum">
+        <span class="tm-ticker__tag"><i class="tm-pulse" aria-hidden="true"></i>Serie A</span>
+        <div class="tm-ticker__viewport">
+            <ul class="tm-ticker__track" data-ticker-track>
+                @foreach (var m in tickerLive)
+                {
+                    <li class="tm-ticker__item is-live">
+                        <span class="tm-ticker__state">Canlı</span>
+                        <span>@TeamCode(m.HomeTeamName)</span><b>@(m.HomeScore ?? 0)-@(m.AwayScore ?? 0)</b><span>@TeamCode(m.AwayTeamName)</span>
+                    </li>
+                }
+                @foreach (var m in tickerResults)
+                {
+                    <li class="tm-ticker__item">
+                        <span class="tm-ticker__state">MS</span>
+                        <span>@TeamCode(m.HomeTeamName)</span><b>@m.HomeScore-@m.AwayScore</b><span>@TeamCode(m.AwayTeamName)</span>
+                    </li>
+                }
+                @foreach (var m in tickerNext)
+                {
+                    <li class="tm-ticker__item is-next">
+                        <span class="tm-ticker__state">@m.MatchDate.ToString("ddd HH:mm", tr)</span>
+                        <span>@TeamCode(m.HomeTeamName)</span><b>vs</b><span>@TeamCode(m.AwayTeamName)</span>
+                    </li>
+                }
+                @if (!tickerLive.Any() && !tickerResults.Any() && !tickerNext.Any())
+                {
+                    <li class="tm-ticker__item"><span class="tm-ticker__state">Bilgi</span><span>Fikstüre maç eklendikçe sonuçlar burada akar</span></li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- ===================== Karşılama ===================== -->
+    <header class="tm-hello">
+        <div class="tm-hello__text">
+            <p class="tm-hello__date"><span>@greeting</span> · @now.ToString("d MMMM yyyy, dddd", tr)</p>
+            <h1 class="tm-title tm-hello__title">Kontrol paneli</h1>
+            <p class="tm-lead">@Model.ActiveWeek. hafta açık. @summary</p>
+        </div>
+        <div class="tm-hello__actions">
+            <a class="tm-quickact" href="/Admin/Matches?new=1&week=@Model.ActiveWeek">
+                <span class="tm-quickact__icon"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-plus" /></svg></span>
+                <span class="tm-quickact__text"><strong>Yeni maç</strong><small>@Model.ActiveWeek. haftaya ekle</small></span>
+            </a>
+            <a class="tm-quickact tm-quickact--live" href="/Admin/Live">
+                <span class="tm-quickact__icon"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-live" /></svg></span>
+                <span class="tm-quickact__text"><strong>Canlı masa</strong><small>@(Model.LiveCount > 0 ? $"{Model.LiveCount} maç canlı" : "Skorları yönet")</small></span>
+            </a>
+            <a class="tm-quickact @(overdueCount > 0 ? "tm-quickact--warn" : "")" href="/Admin/Matches?overdue=1">
+                <span class="tm-quickact__icon"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-whistle" /></svg></span>
+                <span class="tm-quickact__text"><strong>Sonuç gir</strong><small>@(overdueCount > 0 ? $"{overdueCount} maç bekliyor" : "Bekleyen yok")</small></span>
+            </a>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <!-- ===================== Sahne ===================== -->
+    <section class="tm-stage" aria-labelledby="tmStageTitle">
+        <div class="tm-stage__bg" aria-hidden="true">
+            <span class="tm-stage__beam tm-stage__beam--1"></span>
+            <span class="tm-stage__beam tm-stage__beam--2"></span>
+            <span class="tm-stage__beam tm-stage__beam--3"></span>
+            <span class="tm-stage__beam tm-stage__beam--4"></span>
+            <svg class="tm-stage__pitch" viewBox="0 0 1000 420" preserveAspectRatio="xMidYMax slice">
+                <g>
+                    <rect pathLength="1" x="40" y="20" width="920" height="380" />
+                    <line pathLength="1" x1="500" y1="20" x2="500" y2="400" />
+                    <circle pathLength="1" cx="500" cy="210" r="70" />
+                    <circle pathLength="1" cx="500" cy="210" r="3" class="is-dot" />
+                    <rect pathLength="1" x="40" y="110" width="140" height="200" />
+                    <rect pathLength="1" x="40" y="160" width="50" height="100" />
+                    <rect pathLength="1" x="820" y="110" width="140" height="200" />
+                    <rect pathLength="1" x="910" y="160" width="50" height="100" />
+                    <path pathLength="1" d="M180 170a50 50 0 0 1 0 80M820 170a50 50 0 0 0 0 80" />
+                </g>
+            </svg>
+            <span class="tm-stage__grain"></span>
+        </div>
+
+        <!-- Sol: hafta -->
+        <div class="tm-stage__week">
+            <h2 class="tm-stage__label" id="tmStageTitle">Aktif hafta</h2>
+            <div class="tm-stage__weekboard">
+                <div class="tm-stage__ring" data-ring="@weekRatio.ToString("0.###", inv)" data-ring-tone="green" data-ring-size="172"></div>
+                <span class="da-board da-board--xl tm-stage__board" aria-hidden="true">
+                    <span class="da-led tm-led-week" data-led="green" data-led-text="@weekText" data-led-delay="250"></span>
+                </span>
+                <span class="visually-hidden">@Model.ActiveWeek. hafta</span>
+            </div>
+            <p class="tm-stage__weekcount"><strong data-count="@week.Finished">@week.Finished</strong> / @expected maç tamamlandı</p>
+            <ul class="tm-stage__chips">
+                <li class="is-done"><i></i>@week.Finished bitti</li>
+                @if (week.Live > 0)
+                {
+                    <li class="is-live"><i></i>@week.Live canlı</li>
+                }
+                @if (weekOverdue > 0)
+                {
+                    <li class="is-late"><i></i>@weekOverdue sonuç bekliyor</li>
+                }
+                @if (weekUpcoming > 0)
+                {
+                    <li class="is-plan"><i></i>@weekUpcoming planlı</li>
+                }
+                @if (week.Postponed > 0)
+                {
+                    <li class="is-post"><i></i>@week.Postponed ertelendi</li>
+                }
+            </ul>
+        </div>
+
+        <!-- Orta: öne çıkan maç -->
+        <div class="tm-feature @(featuredLive ? "is-live" : "")">
+            @if (featured != null)
+            {
+                <p class="tm-feature__kicker">
+                    @if (featuredLive)
+                    {
+                        <span class="tm-feature__live"><i class="tm-pulse" aria-hidden="true"></i>Şu an canlı</span>
+                    }
+                    else
+                    {
+                        <span class="tm-feature__next">Sıradaki maç</span>
+                    }
+                    <span class="tm-feature__meta">@featured.Week. hafta · @featured.Stadium</span>
+                </p>
+                <div class="tm-feature__match">
+                    <div class="tm-feature__team">
+                        <span class="tm-feature__crest">@Crest(featured.HomeTeamName, featured.HomeTeamLogo, "xl")</span>
+                        <strong>@featured.HomeTeamName</strong>
+                        <span>Ev sahibi</span>
+                    </div>
+                    <div class="tm-feature__center">
+                        @if (featuredLive)
+                        {
+                            <div class="tm-feature__score" aria-label="Skor @(featured.HomeScore ?? 0) - @(featured.AwayScore ?? 0)">
+                                <span class="da-board"><span class="da-led da-led--md" data-led="green" data-led-text="@(featured.HomeScore ?? 0)" data-led-delay="400"></span></span>
+                                <span class="tm-feature__colon" aria-hidden="true"><i></i><i></i></span>
+                                <span class="da-board"><span class="da-led da-led--md" data-led="green" data-led-text="@(featured.AwayScore ?? 0)" data-led-delay="550"></span></span>
+                            </div>
+                            <p class="tm-feature__minute" data-live-minute="@featured.MatchDate.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                <span class="da-board"><span class="da-led da-led--xs" data-minute-led></span></span>
+                                <span data-minute-label>Başlama saatine göre</span>
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="tm-countdown tm-feature__countdown" data-countdown="@featured.MatchDate.ToString("yyyy-MM-ddTHH:mm:ss")" aria-hidden="true">
+                                <div><span class="da-board"><span class="da-led da-led--sm" data-countdown-part="0"></span></span><small data-countdown-label="0">gün</small></div>
+                                <div><span class="da-board"><span class="da-led da-led--sm" data-countdown-part="1"></span></span><small data-countdown-label="1">saat</small></div>
+                                <div><span class="da-board"><span class="da-led da-led--sm" data-countdown-part="2"></span></span><small data-countdown-label="2">dakika</small></div>
+                            </div>
+                            <p class="tm-feature__when">@featured.MatchDate.ToString("d MMMM dddd, HH:mm", tr)</p>
+                        }
+                    </div>
+                    <div class="tm-feature__team">
+                        <span class="tm-feature__crest">@Crest(featured.AwayTeamName, featured.AwayTeamLogo, "xl")</span>
+                        <strong>@featured.AwayTeamName</strong>
+                        <span>Deplasman</span>
+                    </div>
+                </div>
+                <div class="tm-feature__actions">
+                    @if (featuredLive)
+                    {
+                        <a class="tm-btn tm-btn--live" href="/Admin/Live">
+                            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-live" /></svg>
+                            Canlı masada aç
+                        </a>
+                    }
+                    <a class="tm-btn tm-btn--ghost" href="/Admin/Matches?edit=@featured.Id">
+                        <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-edit" /></svg>
+                        Maçı düzenle
+                    </a>
+                </div>
+            }
+            else if (overdueCount > 0)
+            {
+                <div class="tm-feature__empty tm-feature__empty--late">
+                    <span class="tm-feature__whistle"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-whistle" /></svg></span>
+                    <strong>@overdueCount maç sonuç bekliyor</strong>
+                    <p>Saati geçmiş maçların skorlarını senaryo masasından tek seferde girebilir, puan durumunu anında güncelleyebilirsin.</p>
+                    <div class="tm-feature__actions">
+                        <a class="tm-btn tm-btn--primary" href="/Admin/Standings?scenario=1">
+                            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-wand" /></svg>
+                            Sonuçları toplu gir
+                        </a>
+                        <a class="tm-btn tm-btn--ghost" href="/Admin/Matches?overdue=1">Maç listesi</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="tm-feature__empty">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-calendar" /></svg>
+                    <strong>Planlanmış maç yok</strong>
+                    <p>Yeni haftanın maçlarını ekleyince sıradaki maç ve geri sayım burada görünür.</p>
+                    <a class="tm-btn tm-btn--primary" href="/Admin/Matches?new=1">Maç ekle</a>
+                </div>
+            }
+        </div>
+
+        <!-- Sağ: sezon -->
+        <div class="tm-stage__season">
+            <h2 class="tm-stage__label">Sezon</h2>
+            <div class="tm-stage__seasonring">
+                <div data-ring="@seasonRatio.ToString("0.####", inv)" data-ring-tone="blue" data-ring-size="136"></div>
+                <span class="tm-stage__pct">
+                    <strong><span data-count="@seasonPct.ToString(inv)" data-count-decimals="@(seasonPct % 1 == 0 ? 0 : 1)">@seasonPct.ToString(tr)</span><i>%</i></strong>
+                    <small>tamamlandı</small>
+                </span>
+            </div>
+            <dl class="tm-stage__facts">
+                <div><dt>Oynanan</dt><dd>@Model.FinishedCount</dd></div>
+                <div><dt>Kalan</dt><dd>@Math.Max(0, seasonTotal - Model.FinishedCount)</dd></div>
+                <div><dt>Hafta</dt><dd>@Model.ActiveWeek<small>/@(Math.Max(1, (Model.TeamCount - 1) * 2))</small></dd></div>
+            </dl>
+        </div>
+    </section>
+
+    <!-- ===================== Haftanın maçları ===================== -->
+    <section class="tm-week" aria-labelledby="tmWeekTitle">
+        <header class="tm-sechead">
+            <h2 class="tm-sechead__title" id="tmWeekTitle">@Model.ActiveWeek. haftanın maçları</h2>
+            <a class="tm-link" href="/Admin/Matches?week=@Model.ActiveWeek">Hepsini yönet</a>
+        </header>
+        <div class="tm-week__grid">
+            @{
+                var tileIndex = 0;
+            }
+            @foreach (var m in Model.ActiveWeekMatches)
+            {
+                var hasScore = MatchStatuses.HasScore(m.Status) && m.HomeScore.HasValue && m.AwayScore.HasValue;
+                var overdue = m.Status == MatchStatuses.Planned && m.MatchDate.AddHours(2) < now;
+                var homeWin = hasScore && m.HomeScore > m.AwayScore;
+                var awayWin = hasScore && m.AwayScore > m.HomeScore;
+                <a class="tm-mcard tm-mcard--@m.Status @(overdue ? "is-overdue" : "")" style="--i:@(tileIndex++)"
+                       href="/Admin/Matches?edit=@m.Id" title="@m.HomeTeamName - @m.AwayTeamName, düzenle">
+                    <span class="tm-mcard__status">
+                        @if (m.Status == MatchStatuses.Live)
+                        {
+                            <i class="tm-pulse" aria-hidden="true"></i>@:Canlı
+                        }
+                        else if (m.Status == MatchStatuses.Finished)
+                        {
+                            @:Maç sonu
+                        }
+                        else if (m.Status == MatchStatuses.Postponed)
+                        {
+                            @:Ertelendi
+                        }
+                        else if (overdue)
+                        {
+                            @:Sonuç bekliyor
+                        }
+                        else
+                        {
+                            @m.MatchDate.ToString("ddd, d MMM", tr)
+                        }
+                    </span>
+                    <span class="tm-mcard__row @(awayWin ? "is-lose" : "")">
+                        @Crest(m.HomeTeamName, m.HomeTeamLogo, "sm")
+                        <span class="tm-mcard__name">@m.HomeTeamName</span>
+                        <span class="tm-mcard__goals">@(hasScore ? m.HomeScore.ToString() : "")</span>
+                    </span>
+                    <span class="tm-mcard__row @(homeWin ? "is-lose" : "")">
+                        @Crest(m.AwayTeamName, m.AwayTeamLogo, "sm")
+                        <span class="tm-mcard__name">@m.AwayTeamName</span>
+                        <span class="tm-mcard__goals">@(hasScore ? m.AwayScore.ToString() : "")</span>
+                    </span>
+                    <span class="tm-mcard__foot">
+                        @if (hasScore)
+                        {
+                            <span>@m.MatchDate.ToString("d MMM", tr)</span>
+                        }
+                        else
+                        {
+                            <span class="tm-mcard__time">@m.MatchDate.ToString("HH:mm")</span>
+                        }
+                        <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-edit" /></svg>
+                    </span>
+                </a>
+            }
+            @for (var i = 0; i < emptySlots; i++)
+            {
+                <a class="tm-mcard tm-mcard--empty" style="--i:@(tileIndex++)" href="/Admin/Matches?new=1&week=@Model.ActiveWeek">
+                    <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-plus" /></svg>
+                    <span>Maç ekle</span>
+                </a>
+            }
+        </div>
+    </section>
+
+    <!-- ===================== Sezon rakamları ===================== -->
+    <section class="tm-kpis" aria-label="Sezon rakamları">
+        <article class="tm-kpi" style="--i:0">
+            <header><span class="tm-kpi__icon tm-kpi__icon--blue"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-ball" /></svg></span>Toplam gol</header>
+            <strong class="tm-kpi__value" data-count="@Model.GoalCount">@Model.GoalCount</strong>
+            <p class="tm-kpi__delta" data-kpi-delta="goals"></p>
+            <div class="tm-kpi__spark" data-kpi-spark="goals"></div>
+        </article>
+        <article class="tm-kpi" style="--i:1">
+            <header><span class="tm-kpi__icon tm-kpi__icon--green"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-target" /></svg></span>Maç başına gol</header>
+            <strong class="tm-kpi__value" data-count="@Model.GoalsPerMatch.ToString("0.00", inv)" data-count-decimals="2">@Model.GoalsPerMatch.ToString("0.00", tr)</strong>
+            <p class="tm-kpi__delta" data-kpi-delta="avg"></p>
+            <div class="tm-kpi__spark" data-kpi-spark="avg"></div>
+        </article>
+        <article class="tm-kpi" style="--i:2">
+            <header><span class="tm-kpi__icon tm-kpi__icon--amber"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-flag" /></svg></span>Oynanan maç</header>
+            <strong class="tm-kpi__value"><span data-count="@Model.FinishedCount">@Model.FinishedCount</span><small> / @Model.MatchCount</small></strong>
+            <p class="tm-kpi__delta" data-kpi-delta="played"></p>
+            <div class="tm-kpi__spark" data-kpi-spark="played"></div>
+        </article>
+        <article class="tm-kpi" style="--i:3">
+            <header><span class="tm-kpi__icon tm-kpi__icon--violet"><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-home" /></svg></span>Ev sahibi kazanma</header>
+            <strong class="tm-kpi__value"><span data-kpi-homewin>0</span><small>%</small></strong>
+            <p class="tm-kpi__delta" data-kpi-delta="home"></p>
+            <div class="tm-kpi__spark" data-kpi-spark="home"></div>
+        </article>
+    </section>
+
+    <!-- ===================== Grafikler + listeler ===================== -->
+    <div class="tm-dash2__grid">
+        <div class="tm-dash2__main">
+
+            <section class="tm-panel tm-panel--chart" aria-labelledby="tmGoalsTitle">
+                <header class="tm-panel__head">
+                    <div>
+                        <h2 class="tm-panel__title" id="tmGoalsTitle">Haftalık goller</h2>
+                        <p class="tm-panel__sub">Biten maçlarda atılan goller: ev sahibi ve deplasman</p>
+                    </div>
+                    <span class="tm-legend tm-legend--chart">
+                        <span><i style="background:#3987e5"></i>Ev sahibi</span>
+                        <span><i style="background:#d95926"></i>Deplasman</span>
+                    </span>
+                </header>
+                <div class="tm-chart" data-chart-goals style="min-height:262px"></div>
+                <p class="tm-chart__empty" data-chart-goals-empty hidden>Henüz biten maç yok. İlk sonuçlar girilince grafik dolacak.</p>
+            </section>
+
+            <section class="tm-panel tm-panel--chart" aria-labelledby="tmRaceTitle">
+                <header class="tm-panel__head">
+                    <div>
+                        <h2 class="tm-panel__title" id="tmRaceTitle">Zirve yarışı</h2>
+                        <p class="tm-panel__sub">İlk 5 takımın hafta hafta topladığı puan</p>
+                    </div>
+                    <a class="tm-link" href="/Admin/Standings">Puan durumu</a>
+                </header>
+                <div class="tm-chart" data-chart-race style="min-height:282px"></div>
+                <div class="tm-legend tm-legend--chart tm-legend--below" data-chart-race-legend></div>
+            </section>
+
+            <!-- Kontrol listesi -->
+            <section class="tm-panel" aria-labelledby="tmChecklistTitle">
+                <header class="tm-panel__head">
+                    <h2 class="tm-panel__title" id="tmChecklistTitle">Kontrol listesi</h2>
+                    <span class="tm-panel__meta">@(Model.Alerts.Count == 0 ? "Sorun yok" : $"{Model.Alerts.Count} madde")</span>
+                </header>
+                @if (Model.Alerts.Count == 0)
+                {
+                    <div class="tm-allclear">
+                        <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-check" /></svg>
+                        <div>
+                            <strong>Kayıtlar tutarlı</strong>
+                            <p>Sonucu girilmemiş maç, eksik hafta ya da logosuz takım yok.</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <ul class="tm-checklist">
+                        @{
+                            var alertIndex = 0;
+                        }
+                        @foreach (var a in Model.Alerts)
+                        {
+                            <li class="tm-check tm-check--@a.Level" style="--i:@(alertIndex++)">
+                                <span class="tm-check__icon"><svg class="tm-icon" aria-hidden="true"><use href="#@(a.Level == "info" ? "tm-i-info" : "tm-i-alert")" /></svg></span>
+                                <div class="tm-check__body">
+                                    <strong>@a.Title</strong>
+                                    <p>@a.Detail</p>
+                                </div>
+                                @if (a.ActionUrl != null)
+                                {
+                                    <a class="tm-btn tm-btn--small" href="@a.ActionUrl">@a.ActionText</a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+
+        <aside class="tm-dash2__side">
+
+            <section class="tm-panel" aria-labelledby="tmOutcomeTitle">
+                <header class="tm-panel__head">
+                    <h2 class="tm-panel__title" id="tmOutcomeTitle">Sonuç dağılımı</h2>
+                    <span class="tm-panel__meta" data-outcome-total></span>
+                </header>
+                <div class="tm-outcome">
+                    <div class="tm-outcome__donut" data-chart-outcome></div>
+                    <ul class="tm-outcome__legend" data-outcome-legend></ul>
+                </div>
+            </section>
+
+            <section class="tm-panel" aria-labelledby="tmTableTitle">
+                <header class="tm-panel__head">
+                    <h2 class="tm-panel__title" id="tmTableTitle">Puan durumu</h2>
+                    <a class="tm-link" href="/Admin/Standings">Tamamı</a>
+                </header>
+                <table class="tm-mini-table tm-mini-table--form">
+                    <caption class="visually-hidden">Tamamlanan maçlara göre puan durumu</caption>
+                    <thead>
+                        <tr><th scope="col">#</th><th scope="col">Takım</th><th scope="col">Form</th><th scope="col"><abbr title="Averaj">AV</abbr></th><th scope="col">P</th></tr>
+                    </thead>
+                    <tbody data-mini-table></tbody>
+                </table>
+            </section>
+
+            <section class="tm-panel" aria-labelledby="tmHighTitle">
+                <header class="tm-panel__head">
+                    <h2 class="tm-panel__title" id="tmHighTitle">Öne çıkanlar</h2>
+                    <a class="tm-link" href="/Admin/Stats">İstatistikler</a>
+                </header>
+                <ul class="tm-highlights" data-highlights></ul>
+            </section>
+
+            <section class="tm-panel" aria-labelledby="tmResultsTitle">
+                <header class="tm-panel__head">
+                    <h2 class="tm-panel__title" id="tmResultsTitle">Son sonuçlar</h2>
+                    <a class="tm-link" href="/Admin/Matches?status=Tamamlandi">Tümü</a>
+                </header>
+                @if (!Model.LatestResults.Any())
+                {
+                    <p class="tm-empty">Henüz biten maç yok.</p>
+                }
+                else
+                {
+                    <ul class="tm-results">
+                        @foreach (var m in Model.LatestResults)
+                        {
+                            <li>
+                                <a href="/Admin/Matches?edit=@m.Id">
+                                    <span class="tm-results__team tm-results__team--home @(m.HomeScore > m.AwayScore ? "is-win" : "")"><span>@m.HomeTeamName</span>@Crest(m.HomeTeamName, m.HomeTeamLogo, "xs")</span>
+                                    <span class="tm-results__score">@m.HomeScore<i>-</i>@m.AwayScore</span>
+                                    <span class="tm-results__team @(m.AwayScore > m.HomeScore ? "is-win" : "")">@Crest(m.AwayTeamName, m.AwayTeamLogo, "xs")<span>@m.AwayTeamName</span></span>
+                                    <span class="tm-results__week">@m.Week. hafta</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </aside>
+    </div>
+</div>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Snapshot.Teams, matches = Model.Snapshot.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+}
+
+@functions {
+    string TeamCode(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "???";
+        var letters = new string(name.Where(char.IsLetter).ToArray()).ToUpperInvariant();
+        return letters.Length >= 3 ? letters[..3] : letters.PadRight(3, '?');
+    }
+
+    int Hue(string name)
+    {
+        var sum = 0;
+        foreach (var c in name) sum = (sum + c * 37) % 360;
+        return sum;
+    }
+
+    // Logo varsa resim, yoksa takım renginde kısaltma (admin-core.js'teki crest() ile aynı çıktı)
+    Microsoft.AspNetCore.Html.IHtmlContent Crest(string name, string? logoUrl, string size)
+    {
+        var cls = "tm-crest tm-crest--" + size;
+        var enc = System.Net.WebUtility.HtmlEncode(name);
+        var html = string.IsNullOrWhiteSpace(logoUrl)
+            ? $"<span class=\"{cls}\" style=\"--h:{Hue(name)}\" aria-hidden=\"true\">{System.Net.WebUtility.HtmlEncode(TeamCode(name))}</span>"
+            : $"<img class=\"{cls}\" src=\"{System.Net.WebUtility.HtmlEncode(logoUrl)}\" alt=\"\" loading=\"lazy\" data-crest-name=\"{enc}\">";
+        return new Microsoft.AspNetCore.Html.HtmlString(html);
+    }
+}

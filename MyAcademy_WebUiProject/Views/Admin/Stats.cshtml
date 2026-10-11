@@ -1,0 +1,133 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminSnapshot
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "İstatistikler";
+    ViewData["BodyClass"] = "tm-page-stats";
+    var teams = Model.Teams.OrderBy(t => t.Name).ToList();
+}
+
+<div class="tm-page tm-stats">
+    <header class="tm-head">
+        <div class="tm-head__text">
+            <h1 class="tm-title">İstatistikler</h1>
+            <p class="tm-lead">Sezonun rakamları: goller, skorlar, rekorlar ve takım sıralamaları. Hepsi biten maçlardan hesaplanır, yeni sonuç girdikçe güncellenir.</p>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <!-- Sezon özeti -->
+    <section class="tm-statkpis" aria-label="Sezon özeti" data-stat-kpis></section>
+
+    <!-- Grafikler -->
+    <div class="tm-statrow">
+        <section class="tm-panel tm-panel--chart" aria-labelledby="tmResWeekTitle">
+            <header class="tm-panel__head">
+                <div>
+                    <h2 class="tm-panel__title" id="tmResWeekTitle">Haftalara göre sonuçlar</h2>
+                    <p class="tm-panel__sub">Her haftada kaç maçı ev sahibi, kaçını deplasman kazandı</p>
+                </div>
+                <span class="tm-legend tm-legend--chart">
+                    <span><i style="background:#3987e5"></i>Ev sahibi</span>
+                    <span><i style="background:#7d8cab"></i>Beraberlik</span>
+                    <span><i style="background:#d95926"></i>Deplasman</span>
+                </span>
+            </header>
+            <div class="tm-chart" data-chart-results style="min-height:262px"></div>
+        </section>
+
+        <section class="tm-panel tm-panel--chart" aria-labelledby="tmAvgTitle">
+            <header class="tm-panel__head">
+                <div>
+                    <h2 class="tm-panel__title" id="tmAvgTitle">Maç başına gol</h2>
+                    <p class="tm-panel__sub">Haftalık ortalama</p>
+                </div>
+            </header>
+            <div class="tm-chart" data-chart-avg style="min-height:262px"></div>
+        </section>
+    </div>
+
+    <div class="tm-statrow tm-statrow--heat">
+        <section class="tm-panel" aria-labelledby="tmHeatTitle">
+            <header class="tm-panel__head">
+                <div>
+                    <h2 class="tm-panel__title" id="tmHeatTitle">Skor haritası</h2>
+                    <p class="tm-panel__sub">Satır ev sahibi, sütun deplasman golü. Koyu kutu, o skorla daha çok maç bitti demek.</p>
+                </div>
+            </header>
+            <div data-chart-heat></div>
+        </section>
+
+        <section class="tm-panel" aria-labelledby="tmRecTitle">
+            <header class="tm-panel__head">
+                <h2 class="tm-panel__title" id="tmRecTitle">Rekorlar ve seriler</h2>
+            </header>
+            <div class="tm-records" data-records></div>
+        </section>
+    </div>
+
+    <!-- Sıralamalar -->
+    <section class="tm-panel tm-boardsec" aria-labelledby="tmBoardTitle">
+        <header class="tm-panel__head">
+            <div>
+                <h2 class="tm-panel__title" id="tmBoardTitle">Takım sıralamaları</h2>
+                <p class="tm-panel__sub" data-board-sub></p>
+            </div>
+            <div class="tm-seg tm-seg--wrap" role="group" aria-label="Sıralama" data-board-tabs>
+                <button type="button" class="tm-seg__btn" data-board="attack" aria-pressed="true">Hücum</button>
+                <button type="button" class="tm-seg__btn" data-board="defense" aria-pressed="false">Savunma</button>
+                <button type="button" class="tm-seg__btn" data-board="home" aria-pressed="false">İç saha</button>
+                <button type="button" class="tm-seg__btn" data-board="away" aria-pressed="false">Deplasman</button>
+                <button type="button" class="tm-seg__btn" data-board="gd" aria-pressed="false">Averaj</button>
+                <button type="button" class="tm-seg__btn" data-board="clean" aria-pressed="false">Gol yemeden</button>
+            </div>
+        </header>
+        <div data-board-list></div>
+    </section>
+
+    <!-- Karşılaştırma -->
+    <section class="tm-panel tm-versus" aria-labelledby="tmVsTitle">
+        <header class="tm-panel__head">
+            <div>
+                <h2 class="tm-panel__title" id="tmVsTitle">Kafa kafaya</h2>
+                <p class="tm-panel__sub">İki takımı seç, sezon rakamlarını yan yana gör</p>
+            </div>
+        </header>
+        <div class="tm-versus__pick">
+            <label class="tm-field">
+                <span class="visually-hidden">Birinci takım</span>
+                <select class="tm-input tm-select" data-vs="a">
+                    @foreach (var t in teams)
+                    {
+                        <option value="@t.Id">@t.Name</option>
+                    }
+                </select>
+            </label>
+            <button type="button" class="tm-iconbtn tm-versus__swap" data-vs-swap title="Yer değiştir" aria-label="Takımların yerini değiştir">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-swap" /></svg>
+            </button>
+            <label class="tm-field">
+                <span class="visually-hidden">İkinci takım</span>
+                <select class="tm-input tm-select" data-vs="b">
+                    @foreach (var t in teams)
+                    {
+                        <option value="@t.Id">@t.Name</option>
+                    }
+                </select>
+            </label>
+        </div>
+        <div class="tm-versus__body" data-vs-body></div>
+    </section>
+</div>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Teams, matches = Model.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-stats.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,50 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@{
+    ViewData["Title"] = "Kulüpler";
+    ViewData["BodyClass"] = "clubs-page";
+    ViewData["Description"] = "Serie A'nın yirmi kulübü: sıra, puan, form ve sezon grafiği tek vitrinde.";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/clubs.css" asp-append-version="true" />
+}
+
+<section class="da-pagehead cl-head" aria-labelledby="clTitle">
+    <partial name="_StageBackdrop" />
+    <div class="da-wrap da-pagehead__inner">
+        <div>
+            <p class="da-kicker"><i></i><span>Serie A 2026/27</span></p>
+            <h1 class="da-pagehead__title" id="clTitle"><span class="da-split" data-split>Kulüpler</span></h1>
+            <p class="da-pagehead__lead">Yirmi kulüp, yirmi hikâye. Bir armaya tıkla, o takımın sezonunu hafta hafta aç.</p>
+        </div>
+        <dl class="cl-headstats" data-headstats></dl>
+    </div>
+</section>
+
+<partial name="_SiteError" />
+
+<section class="da-section cl-main" aria-label="Kulüp vitrini">
+    <div class="da-wrap">
+        <div class="cl-toolbar">
+            <div class="da-seg" role="group" aria-label="Sıralama">
+                <button type="button" class="da-seg__btn" data-sort="rank" aria-pressed="true">Sıraya göre</button>
+                <button type="button" class="da-seg__btn" data-sort="form" aria-pressed="false">Forma göre</button>
+                <button type="button" class="da-seg__btn" data-sort="goals" aria-pressed="false">Gole göre</button>
+                <button type="button" class="da-seg__btn" data-sort="name" aria-pressed="false">A'dan Z'ye</button>
+            </div>
+            <label class="da-search cl-search">
+                <svg aria-hidden="true"><use href="#i-search" /></svg>
+                <span class="visually-hidden">Kulüp ya da şehir ara</span>
+                <input type="search" placeholder="Kulüp ya da şehir ara" autocomplete="off" spellcheck="false" data-search>
+            </label>
+        </div>
+        <div class="cl-grid" data-grid></div>
+        <p class="cl-nomatch" data-nomatch hidden>Aramana uyan kulüp yok.</p>
+    </div>
+</section>
+
+<partial name="_SiteSeed" />
+
+@section Scripts {
+    <script src="~/js/clubs.js" asp-append-version="true"></script>
+}

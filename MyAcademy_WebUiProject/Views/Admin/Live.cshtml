@@ -1,0 +1,112 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminSnapshot
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Canlı masa";
+    ViewData["BodyClass"] = "tm-page-live";
+}
+
+<div class="tm-page tm-live">
+    <header class="tm-head">
+        <div class="tm-head__text">
+            <p class="tm-head__date tm-live__onair"><i class="tm-pulse" aria-hidden="true"></i><span data-onair>Yayın masası</span></p>
+            <h1 class="tm-title">Canlı masa</h1>
+            <p class="tm-lead">Canlı maçların skorunu tek dokunuşla güncelle, maçı başlat ya da bitir. Her değişiklik puan durumuna ve siteye anında yansır.</p>
+        </div>
+        <div class="tm-head__actions">
+            <span class="tm-autosync" data-autosync title="Veriler 20 saniyede bir yenilenir">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-refresh" /></svg>
+                <span data-autosync-text>Otomatik yenileme açık</span>
+            </span>
+            <button type="button" class="tm-btn tm-btn--ghost" data-live-refresh>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-refresh" /></svg>
+                Şimdi yenile
+            </button>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <div class="tm-live__grid">
+        <div class="tm-live__main">
+
+            <!-- Canlı maçlar -->
+            <section aria-labelledby="tmLiveTitle">
+                <header class="tm-sechead">
+                    <h2 class="tm-sechead__title" id="tmLiveTitle">Şu an oynananlar <span class="tm-count" data-live-count>0</span></h2>
+                    <span class="tm-sechead__hint">Skor kutusuna tıklayıp klavyeden <kbd>↑</kbd> <kbd>↓</kbd> ile de değiştirebilirsin</span>
+                </header>
+                <div class="tm-boards" data-live-boards></div>
+                <div class="tm-live__empty" data-live-empty hidden>
+                    <div class="tm-live__empty-art" aria-hidden="true">
+                        <svg viewBox="0 0 120 80"><rect x="4" y="4" width="112" height="72" rx="4" /><line x1="60" y1="4" x2="60" y2="76" /><circle cx="60" cy="40" r="12" /><rect x="4" y="24" width="16" height="32" /><rect x="100" y="24" width="16" height="32" /></svg>
+                    </div>
+                    <strong>Şu an canlı maç yok</strong>
+                    <p data-live-empty-text>Başlama saati gelen maçları aşağıdan başlatabilirsin.</p>
+                </div>
+            </section>
+
+            <!-- Başlamayı bekleyenler -->
+            <section aria-labelledby="tmWaitTitle">
+                <header class="tm-sechead">
+                    <h2 class="tm-sechead__title" id="tmWaitTitle">Başlamayı bekleyenler <span class="tm-count" data-wait-count>0</span></h2>
+                    <a class="tm-link" href="/Admin/Calendar">Takvimi aç</a>
+                </header>
+                <ul class="tm-queue" data-wait-list></ul>
+                <p class="tm-empty tm-queue__empty" data-wait-empty hidden>Önümüzdeki 36 saatte başlayacak maç yok.</p>
+            </section>
+
+            <!-- Bugün bitenler -->
+            <section aria-labelledby="tmDoneTitle">
+                <header class="tm-sechead">
+                    <h2 class="tm-sechead__title" id="tmDoneTitle">Son 24 saatte bitenler <span class="tm-count" data-done-count>0</span></h2>
+                    <a class="tm-link" href="/Admin/Matches?status=Tamamlandi">Bütün sonuçlar</a>
+                </header>
+                <ul class="tm-finals" data-done-list></ul>
+                <p class="tm-empty tm-queue__empty" data-done-empty hidden>Son 24 saatte biten maç yok.</p>
+            </section>
+        </div>
+
+        <!-- Canlı puan durumu -->
+        <aside class="tm-live__side">
+            <section class="tm-panel tm-livetable" aria-labelledby="tmLiveTableTitle">
+                <header class="tm-panel__head">
+                    <div>
+                        <h2 class="tm-panel__title" id="tmLiveTableTitle">Canlı puan durumu</h2>
+                        <p class="tm-panel__sub">Canlı maçlar şu anki skorla bitse</p>
+                    </div>
+                    <a class="tm-link" href="/Admin/Standings">Tam tablo</a>
+                </header>
+                <table class="tm-mini-table tm-livetable__table">
+                    <caption class="visually-hidden">Canlı skorlara göre puan durumu</caption>
+                    <thead>
+                        <tr><th scope="col">#</th><th scope="col">Takım</th><th scope="col"><abbr title="Oynanan">O</abbr></th><th scope="col"><abbr title="Averaj">AV</abbr></th><th scope="col">P</th></tr>
+                    </thead>
+                    <tbody data-live-table></tbody>
+                </table>
+                <p class="tm-livetable__legend">
+                    <span><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-up" /></svg>Canlı sonuçla yükselen</span>
+                    <span><svg class="tm-icon" aria-hidden="true"><use href="#tm-i-down" /></svg>Düşen</span>
+                    <span><i class="tm-livetable__dot" aria-hidden="true"></i>Şu an sahada</span>
+                </p>
+            </section>
+        </aside>
+    </div>
+</div>
+
+<!-- Gol anı için tam ekran olmayan kısa bildirim -->
+<div class="tm-goalflash" data-goalflash aria-live="assertive" hidden>
+    <span class="tm-goalflash__word">GOL</span>
+    <span class="tm-goalflash__team" data-goalflash-team></span>
+</div>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Teams, matches = Model.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-live.js" asp-append-version="true"></script>
+}

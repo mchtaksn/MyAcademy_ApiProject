@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MyAcademy_ApiProject/MyAcademy_ApiProject.csproj" />
+  <Project Path="MyAcademy_WebUiProject/MyAcademy_WebUiProject.csproj" />
+</Solution>

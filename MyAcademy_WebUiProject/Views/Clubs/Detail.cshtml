@@ -1,0 +1,96 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@{
+    var team = Model.Team;
+    ViewData["Title"] = team?.Name ?? "Kulüp bulunamadı";
+    ViewData["BodyClass"] = "club-page";
+    ViewData["Description"] = team != null
+        ? $"{team.Name} ({team.City}, {team.Stadium}): Serie A sezonu, sıra grafiği, sonuçlar, iç saha ve deplasman karnesi."
+        : "Aradığın kulüp bulunamadı.";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/clubs.css" asp-append-version="true" />
+}
+
+@if (team == null)
+{
+    <section class="da-pagehead">
+        <partial name="_StageBackdrop" />
+        <div class="da-wrap">
+            <p class="da-kicker"><i></i><span>Kulüpler</span></p>
+            <h1 class="da-pagehead__title">Kulüp bulunamadı</h1>
+            <p class="da-pagehead__lead">Bu kulüp ligden çıkarılmış ya da bağlantı hatalı olabilir.</p>
+            <div class="cl-missing">
+                <a class="da-btn da-btn--primary" asp-controller="Clubs" asp-action="Index"><svg aria-hidden="true"><use href="#i-shield" /></svg>Bütün kulüpler</a>
+            </div>
+        </div>
+    </section>
+    <partial name="_SiteError" />
+}
+else
+{
+    <section class="cl-hero" data-hero aria-labelledby="clName">
+        <div class="cl-hero__wash" aria-hidden="true"></div>
+        <partial name="_StageBackdrop" />
+        <div class="cl-hero__mark" aria-hidden="true" data-mark></div>
+
+        <div class="da-wrap cl-hero__inner">
+            <nav class="da-crumbs" aria-label="Konum">
+                <a asp-controller="Clubs" asp-action="Index">Kulüpler</a>
+                <svg aria-hidden="true"><use href="#i-chev-right" /></svg>
+                <span aria-current="page">@team.Name</span>
+            </nav>
+            <div class="cl-hero__main">
+                <div class="cl-hero__crest" data-crest></div>
+                <div class="cl-hero__text">
+                    <p class="da-kicker" data-hero-kicker><i></i><span>Serie A 2026/27</span></p>
+                    <h1 class="cl-hero__name" id="clName"><span class="da-split" data-split>@team.Name</span></h1>
+                    <p class="cl-hero__place"><svg aria-hidden="true"><use href="#i-pin" /></svg><span>@team.City · @team.Stadium</span></p>
+                    <div class="cl-hero__chips" data-chips></div>
+                </div>
+                <div class="cl-hero__rank" data-rank></div>
+            </div>
+        </div>
+    </section>
+
+    <partial name="_SiteError" />
+
+    <div class="da-wrap cl-body">
+        <div class="cl-kpis" data-kpis></div>
+
+        <div class="cl-row">
+            <section class="da-panel cl-journey" data-reveal aria-labelledby="clJourneyTitle">
+                <header class="da-panel__head">
+                    <div>
+                        <h2 class="da-panel__title" id="clJourneyTitle">Sezon yolculuğu</h2>
+                        <p class="da-panel__sub" data-journey-sub>Hafta sonundaki sıra (1 en üstte)</p>
+                    </div>
+                    <div class="da-seg" role="group" aria-label="Grafik türü">
+                        <button type="button" class="da-seg__btn" data-journey="rank" aria-pressed="true">Sıra</button>
+                        <button type="button" class="da-seg__btn" data-journey="points" aria-pressed="false">Puan</button>
+                        <button type="button" class="da-seg__btn" data-journey="goals" aria-pressed="false">Goller</button>
+                    </div>
+                </header>
+                <div class="tm-chart" data-journey-chart style="min-height:300px"></div>
+            </section>
+            <section class="da-panel cl-next" data-next data-reveal style="--i:1" aria-live="polite"></section>
+        </div>
+
+        <div class="cl-row cl-row--even">
+            <section class="da-panel cl-split" data-split-panel data-reveal aria-labelledby="clSplitTitle"></section>
+            <section class="da-panel cl-results" data-results data-reveal style="--i:1" aria-labelledby="clResultsTitle"></section>
+        </div>
+
+        <nav class="cl-pager" data-pager aria-label="Diğer kulüpler"></nav>
+    </div>
+
+    <partial name="_SiteSeed" />
+}
+
+@section Scripts {
+    @if (team != null)
+    {
+        <script>window.DA_CLUB = @team.Id;</script>
+        <script src="~/js/clubs.js" asp-append-version="true"></script>
+    }
+}

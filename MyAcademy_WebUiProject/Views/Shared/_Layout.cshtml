@@ -1,0 +1,265 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var isHome = currentController == "Home";
+    var isStandings = currentController == "Standings";
+    var isFixtures = currentController == "Fixtures" || currentController == "Match";
+    var isClubs = currentController == "Clubs";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070F1F" />
+    <meta name="description" content="@(ViewData["Description"] ?? "Serie A'nın canlı skorları, puan durumu, haftalık fikstürü ve kulüpleri. Son düdüğe kadar.")" />
+    <title>@ViewData["Title"] – Doksan Artı</title>
+    <script>
+            (function () {
+                var html = document.documentElement;
+                html.classList.add('da-js');
+                try {
+                    var seen = window.sessionStorage.getItem('da-intro-seen') === '1';
+                    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    if (!seen && !reduce) { html.classList.add('da-intro-active'); }
+                } catch (e) { }
+                var setDaypart = function () {
+                    var h = new Date().getHours();
+                    var part = (h >= 7 && h < 17) ? 'day' : ((h >= 17 && h < 20) || (h >= 5 && h < 7)) ? 'dusk' : 'night';
+                    html.setAttribute('data-daypart', part);
+                };
+                setDaypart();
+                window.setInterval(setDaypart, 15 * 60 * 1000);
+            })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site-core.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="da-site @ViewData["BodyClass"]">
+    <a class="da-skip" href="#icerik">İçeriğe geç</a>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5L12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></symbol>
+        <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4z" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><path d="M12 12v4M9 20h6M10 16h4v2.5a2 2 0 0 1-2 1.5 2 2 0 0 1-2-1.5V16z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M4 9.5h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><circle cx="8.5" cy="13.5" r="1" fill="currentColor" /><circle cx="12" cy="13.5" r="1" fill="currentColor" /><circle cx="15.5" cy="13.5" r="1" fill="currentColor" /></symbol>
+        <symbol id="i-whistle" viewBox="0 0 24 24"><circle cx="9" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M13 10.5L20 7v4l-5.2 1.6M5.5 6L7 8M9 4.5V7M12.5 6L11 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /><path d="M12 7v10M8.5 9.5h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".55" /></symbol>
+        <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6" fill="currentColor" /><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></symbol>
+        <symbol id="i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M12 7.6l3.3 2.4-1.3 3.8h-4l-1.3-3.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /></symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /><circle cx="12" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.6" /></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></symbol>
+        <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor" /></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M20 20l-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></symbol>
+        <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 6l6 8H6z" fill="currentColor" /></symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 18l6-8H6z" fill="currentColor" /></symbol>
+        <symbol id="i-fire" viewBox="0 0 24 24"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.4 2.6-5.3 3.8-8.3.3 2.1 1.4 3.3 2.6 3.9-.1-2.9 1.2-5.4 3.4-6.9-.3 2.7.9 4.3 2 5.9 1 1.5 1.7 3 1.7 5.3 0 3.7-3.1 6.3-7 6.3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><rect x="5.5" y="11" width="3" height="6.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.6" /><rect x="10.5" y="6" width="3" height="11.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.6" /><rect x="15.5" y="9" width="3" height="8.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.6" /></symbol>
+        <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6" /><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6" /><circle cx="12" cy="12" r="1.3" fill="currentColor" /></symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6" /></symbol>
+        <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+        <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15.5V4M8 8l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+        <symbol id="i-trophy-fill" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4z" fill="currentColor" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><path d="M12 12v4M9 20h6M10 16h4v2.5a2 2 0 0 1-2 1.5 2 2 0 0 1-2-1.5V16z" fill="currentColor" /></symbol>
+        <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5h3.2L11 6v12l-3.8-3.5H4z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" /><path d="M15 9a4 4 0 0 1 0 6M17.6 6.6a7.8 7.8 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></symbol>
+        <symbol id="i-sound-off" viewBox="0 0 24 24"><path d="M4 9.5h3.2L11 6v12l-3.8-3.5H4z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" /><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></symbol>
+        <symbol id="i-film" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /><path d="M8 5.5v13M16 5.5v13M3.5 10h4.5M16 10h4.5M3.5 15h4.5M16 15h4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></symbol>
+        <symbol id="i-chevd" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+    </svg>
+
+    <!-- Açılış sahnesi (oturumda bir kez) -->
+    <div class="da-intro" data-intro aria-hidden="true">
+        <div class="da-intro__backdrop">
+            <span class="da-intro__beam da-intro__beam--left"></span>
+            <span class="da-intro__beam da-intro__beam--right"></span>
+            <span class="da-intro__haze"></span>
+        </div>
+        <div class="da-intro__stage">
+            <span class="da-board da-board--xl da-intro__board" data-intro-board>
+                <span class="da-led da-led--xl" data-intro-led></span>
+            </span>
+            <p class="da-intro__title" data-intro-title>Doksan Artı</p>
+            <p class="da-intro__caption">Serie A, son düdüğe kadar</p>
+        </div>
+        <p class="da-intro__hint">Geçmek için tıkla</p>
+    </div>
+
+    <header class="da-header" data-header>
+        <div class="da-header__fx" aria-hidden="true">
+            <span class="da-header__stripes"></span>
+            <span class="da-header__light"></span>
+            <span class="da-header__perimeter"></span>
+        </div>
+
+        <div class="da-header__inner">
+            <a class="da-brand" asp-controller="Home" asp-action="Index" aria-label="Doksan Artı ana sayfa">
+                <span class="da-brand__board" aria-hidden="true">
+                    <span class="da-board" data-brand-board>
+                        <span class="da-led da-led--sm" data-brand-led></span>
+                    </span>
+                </span>
+                <span class="da-brand__text">
+                    <span class="da-wordmark" data-wordmark aria-hidden="true">Doksan Artı</span>
+                    <span class="da-brand__tag">Serie A, son düdüğe kadar</span>
+                </span>
+            </a>
+
+            <nav class="da-nav" id="daNav" data-nav aria-label="Ana menü">
+                <span class="da-nav__indicator" data-nav-indicator aria-hidden="true"></span>
+                <a class="da-nav__link @(isHome ? "is-active" : "")" data-nav-link aria-current="@(isHome ? "page" : null)" asp-controller="Home" asp-action="Index">
+                    <svg class="da-nav__icon" aria-hidden="true"><use href="#i-home" /></svg>
+                    <span>Ana sayfa</span>
+                </a>
+                <a class="da-nav__link @(isStandings ? "is-active" : "")" data-nav-link aria-current="@(isStandings ? "page" : null)" asp-controller="Standings" asp-action="Index">
+                    <svg class="da-nav__icon" aria-hidden="true"><use href="#i-trophy" /></svg>
+                    <span>Puan Durumu</span>
+                </a>
+                <a class="da-nav__link @(isFixtures ? "is-active" : "")" data-nav-link aria-current="@(isFixtures ? "page" : null)" asp-controller="Fixtures" asp-action="Index">
+                    <svg class="da-nav__icon" aria-hidden="true"><use href="#i-calendar" /></svg>
+                    <span>Fikstür</span>
+                </a>
+                <a class="da-nav__link @(isClubs ? "is-active" : "")" data-nav-link aria-current="@(isClubs ? "page" : null)" asp-controller="Clubs" asp-action="Index">
+                    <svg class="da-nav__icon" aria-hidden="true"><use href="#i-shield" /></svg>
+                    <span>Kulüpler</span>
+                </a>
+            </nav>
+
+            <div class="da-clock" data-clock title="Serie A maçları Roma saatiyle oynanır">
+                <span class="da-clock__label">Roma</span>
+                <span class="da-clock__time" data-clock-time>--:--</span>
+            </div>
+
+            <button type="button" class="da-nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="daNav" aria-label="Menüyü aç veya kapat">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+
+        <!-- Canlı şerit: canlı maç varken görünür, skorlar anında değişir -->
+        <div class="da-livebar" data-livebar hidden>
+            <div class="da-livebar__inner">
+                <span class="da-livebar__tag" title="Şu an oynanan maçlar">
+                    <span class="da-board da-livebar__board" aria-hidden="true"><span class="da-led da-led--xs" data-livebar-led></span></span>
+                    <span class="visually-hidden">Canlı maçlar:</span>
+                    <b class="da-livebar__count" data-livebar-count>0</b>
+                </span>
+                <div class="da-livebar__viewport" data-livebar-viewport>
+                    <div class="da-livebar__track" data-livebar-track></div>
+                </div>
+                <span class="da-livebar__conn" title="Canlı bağlantı" aria-hidden="true"><i></i></span>
+                <button type="button" class="da-livebar__fx" data-sound-fx aria-pressed="false" title="Stadyum sesini aç / kapat">
+                    <svg aria-hidden="true"><use href="#i-sound" /></svg>
+                    <span class="visually-hidden">Stadyum sesi</span>
+                </button>
+                <button type="button" class="da-livebar__fx" data-goal-fx aria-pressed="true" title="GOL animasyonunu aç / kapat">
+                    <svg aria-hidden="true"><use href="#i-sparkle" /></svg>
+                    <span class="visually-hidden">GOL animasyonu</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="da-progress" data-progress aria-hidden="true">
+            <span class="da-progress__bar"></span>
+            <span class="da-progress__minute" data-progress-minute>1'</span>
+        </div>
+    </header>
+
+    <div class="da-page" id="icerik">
+        <noscript>
+            <p class="da-noscript">Doksan Artı'nın canlı skorları, tabloları ve grafikleri JavaScript ile çalışır. Tarayıcında JavaScript'i açman yeterli.</p>
+        </noscript>
+        @RenderBody()
+    </div>
+
+    <footer class="da-footer" data-footer>
+        <svg class="da-footer__pitch" viewBox="0 0 1200 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+            <path pathLength="1" style="--d:0s" d="M20 20H1180V300H20Z" />
+            <path pathLength="1" style="--d:.2s" d="M600 20V300" />
+            <path pathLength="1" style="--d:.35s" d="M540 160A60 60 0 1 0 660 160A60 60 0 1 0 540 160" />
+            <path pathLength="1" style="--d:.5s" d="M20 75H170V245H20" />
+            <path pathLength="1" style="--d:.5s" d="M1180 75H1030V245H1180" />
+            <path pathLength="1" style="--d:.65s" d="M20 125H70V195H20" />
+            <path pathLength="1" style="--d:.65s" d="M1180 125H1130V195H1180" />
+            <path pathLength="1" style="--d:.8s" d="M170 130A40 40 0 0 1 170 190" />
+            <path pathLength="1" style="--d:.8s" d="M1030 130A40 40 0 0 0 1030 190" />
+            <circle class="da-footer__spot" cx="600" cy="160" r="4" />
+        </svg>
+
+        <div class="da-footer__inner">
+            <div class="da-footer__brand">
+                <span class="da-board da-footer__board" aria-hidden="true">
+                    <span class="da-led da-led--xs" data-led-static="90+" data-led-tones="green,green,red"></span>
+                </span>
+                <div>
+                    <strong class="da-footer__name">Doksan Artı</strong>
+                    <p>Serie A'nın canlı skorları, puan durumu, haftalık fikstürü ve kulüpleri. Son düdük çalana kadar.</p>
+                </div>
+            </div>
+
+            <nav class="da-footer__col" aria-label="Alt menü">
+                <h2>Sayfalar</h2>
+                <ul>
+                    <li><a asp-controller="Home" asp-action="Index">Ana sayfa</a></li>
+                    <li><a asp-controller="Standings" asp-action="Index">Puan Durumu</a></li>
+                    <li><a asp-controller="Fixtures" asp-action="Index">Fikstür</a></li>
+                    <li><a asp-controller="Clubs" asp-action="Index">Kulüpler</a></li>
+                </ul>
+            </nav>
+
+            <div class="da-footer__col">
+                <h2>Sezon</h2>
+                <dl class="da-footer__facts">
+                    <div><dt>Lig</dt><dd>Serie A</dd></div>
+                    <div><dt>Sezon</dt><dd>2026/27</dd></div>
+                    <div><dt>Takım</dt><dd>20</dd></div>
+                    <div><dt>Hafta</dt><dd>38</dd></div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="da-footer__bottom">
+            <span>© @DateTime.Now.Year Doksan Artı</span>
+            <span class="da-footer__live"><i aria-hidden="true"></i><span data-conn-text>Canlı yayına bağlanıyor</span></span>
+            <span>Serie A Bootcamp Case — M&amp;Y Yazılım Eğitim Akademi</span>
+        </div>
+    </footer>
+
+    <button type="button" class="da-totop" data-totop aria-label="Sayfanın başına dön">
+        <svg viewBox="-26 -26 52 52" aria-hidden="true" focusable="false">
+            <defs>
+                <radialGradient id="daBallShade" cx="35%" cy="30%" r="75%">
+                    <stop offset="55%" stop-color="#000" stop-opacity="0" />
+                    <stop offset="100%" stop-color="#0B1730" stop-opacity=".4" />
+                </radialGradient>
+            </defs>
+            <circle r="24" fill="#F4F7FF" />
+            <g data-totop-spin>
+                <path d="M0 -9L8.6 -2.8L5.3 7.3H-5.3L-8.6 -2.8Z" fill="#0B1730" />
+                <path d="M0 -9V-22M8.6 -2.8L20.5 -6.8M5.3 7.3L12.8 18M-5.3 7.3L-12.8 18M-8.6 -2.8L-20.5 -6.8" stroke="#0B1730" stroke-width="2" fill="none" stroke-linecap="round" />
+                <path d="M-6 -23.2L6 -23.2L4 -19.6H-4Z" fill="#0B1730" />
+                <path d="M23 -3L21.4 6L18.6 3.6L19.8 -4Z" fill="#0B1730" />
+                <path d="M-23 -3L-21.4 6L-18.6 3.6L-19.8 -4Z" fill="#0B1730" />
+                <path d="M-6 22.2L6 22.2L3.6 18.8H-3.6Z" fill="#0B1730" />
+            </g>
+            <circle r="24" fill="url(#daBallShade)" />
+            <circle r="23.5" fill="none" stroke="rgba(11,23,48,.25)" />
+        </svg>
+        <span class="da-totop__tip">Başa dön</span>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+    <script src="~/js/site-core.js" asp-append-version="true"></script>
+    <script src="~/js/admin-league.js" asp-append-version="true"></script>
+    <script src="~/js/admin-charts.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

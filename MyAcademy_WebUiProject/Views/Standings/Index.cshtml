@@ -1,0 +1,148 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@{
+    ViewData["Title"] = "Puan Durumu";
+    ViewData["BodyClass"] = "standings-page";
+    ViewData["Description"] = "Serie A puan durumu: canlı tablo, iç saha ve deplasman sıralaması, form, puan merdiveni ve hafta hafta sezon yolculuğu.";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/standings.css" asp-append-version="true" />
+}
+
+<section class="da-pagehead st-head" aria-labelledby="stTitle">
+    <partial name="_StageBackdrop" />
+    <div class="da-wrap da-pagehead__inner">
+        <div>
+            <p class="da-kicker" data-st-kicker><i></i><span>Serie A 2026/27</span></p>
+            <h1 class="da-pagehead__title" id="stTitle"><span class="da-split" data-split>Puan Durumu</span></h1>
+            <p class="da-pagehead__lead" data-st-lead>Tablo biten maçlardan anında hesaplanır. Canlı maç varken sıralama o anki skorla yeniden dizilir.</p>
+        </div>
+        <div class="st-leaders" data-st-leaders></div>
+    </div>
+</section>
+
+<partial name="_SiteError" />
+
+<section class="da-section st-main" aria-label="Puan tablosu">
+    <div class="da-wrap">
+
+        <!-- Kontroller -->
+        <div class="da-panel st-toolbar">
+            <div class="da-seg" role="group" aria-label="Tablo türü">
+                <button type="button" class="da-seg__btn" data-venue="all" aria-pressed="true">Genel</button>
+                <button type="button" class="da-seg__btn" data-venue="home" aria-pressed="false">İç saha</button>
+                <button type="button" class="da-seg__btn" data-venue="away" aria-pressed="false">Deplasman</button>
+            </div>
+
+            <label class="da-switch st-liveswitch" data-live-switch hidden>
+                <input type="checkbox" data-include-live checked>
+                <span class="da-switch__track" aria-hidden="true"></span>
+                <span>Canlı tablo</span>
+            </label>
+
+            <div class="st-timeline">
+                <span class="da-board da-board--plain st-timeline__board" aria-hidden="true"><span class="da-led da-led--sm" data-week-led></span></span>
+                <label class="st-timeline__label" for="stWeekRange"><strong data-week-text>Son durum</strong><small>Kaydır, geçmiş haftalara dön</small></label>
+                <input class="da-range" id="stWeekRange" type="range" min="0" max="0" value="0" step="1" data-week-range>
+                <button type="button" class="da-iconbtn" data-week-play title="Sezonu baştan oynat" aria-label="Sezonu baştan oynat">
+                    <svg aria-hidden="true"><use href="#i-play" /></svg>
+                </button>
+            </div>
+
+            <label class="da-search st-search">
+                <svg aria-hidden="true"><use href="#i-search" /></svg>
+                <span class="visually-hidden">Takım ara</span>
+                <input type="search" placeholder="Takım ara" autocomplete="off" spellcheck="false" data-search>
+            </label>
+        </div>
+
+        <div class="da-chips st-zones" role="group" aria-label="Bölgeye göre süz">
+            <button type="button" class="da-chip" data-zone="all" aria-pressed="true">Bütün takımlar</button>
+            <button type="button" class="da-chip" data-zone="ucl" aria-pressed="false" style="--c:var(--zone-ucl)"><i aria-hidden="true"></i>Şampiyonlar Ligi</button>
+            <button type="button" class="da-chip" data-zone="eu" aria-pressed="false" style="--c:var(--zone-uel)"><i aria-hidden="true"></i>Avrupa kupaları</button>
+            <button type="button" class="da-chip" data-zone="mid" aria-pressed="false" style="--c:var(--da-dim)"><i aria-hidden="true"></i>Orta sıralar</button>
+            <button type="button" class="da-chip" data-zone="rel" aria-pressed="false" style="--c:var(--zone-rel)"><i aria-hidden="true"></i>Küme düşme hattı</button>
+        </div>
+
+        <div class="st-layout">
+            <!-- Tablo -->
+            <div class="da-panel st-tablepanel">
+                <div class="st-tablewrap">
+                    <table class="st-table">
+                        <caption class="visually-hidden" data-caption>Puan durumu</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col" class="st-col-rank">#</th>
+                                <th scope="col" class="st-col-team">Takım</th>
+                                <th scope="col" class="st-col-num"><abbr title="Oynanan">O</abbr></th>
+                                <th scope="col" class="st-col-num st-hide-s"><abbr title="Galibiyet">G</abbr></th>
+                                <th scope="col" class="st-col-num st-hide-s"><abbr title="Beraberlik">B</abbr></th>
+                                <th scope="col" class="st-col-num st-hide-s"><abbr title="Mağlubiyet">M</abbr></th>
+                                <th scope="col" class="st-col-num st-hide-m"><abbr title="Atılan gol">A</abbr></th>
+                                <th scope="col" class="st-col-num st-hide-m"><abbr title="Yenilen gol">Y</abbr></th>
+                                <th scope="col" class="st-col-num"><abbr title="Averaj">AV</abbr></th>
+                                <th scope="col" class="st-col-pts">P</th>
+                                <th scope="col" class="st-col-form st-hide-l">Son 5</th>
+                                <th scope="col" class="st-col-next st-hide-l">Sıradaki</th>
+                            </tr>
+                        </thead>
+                        <tbody data-rows></tbody>
+                    </table>
+                </div>
+                <p class="st-nomatch" data-nomatch hidden>Aramana uyan takım yok.</p>
+                <footer class="st-foot">
+                    <span class="da-zones">
+                        <span class="da-zones__item zone-ucl">Şampiyonlar Ligi</span>
+                        <span class="da-zones__item zone-uel">Avrupa Ligi</span>
+                        <span class="da-zones__item zone-uecl">Konferans Ligi</span>
+                        <span class="da-zones__item zone-rel">Küme düşme</span>
+                    </span>
+                    <span class="st-foot__note">Eşitlikte averaja, sonra atılan gole bakılır. Satıra tıkla, takım kartını aç.</span>
+                </footer>
+            </div>
+
+            <!-- Takım kartı + puan merdiveni -->
+            <aside class="st-side">
+                <section class="da-panel st-card" data-card aria-live="polite"></section>
+                <section class="da-panel st-ladderpanel" aria-labelledby="stLadderTitle">
+                    <header class="da-panel__head">
+                        <div>
+                            <h2 class="da-panel__title" id="stLadderTitle">Puan merdiveni</h2>
+                            <p class="da-panel__sub">Takımlar arasındaki puan farkı, aynı ölçekte</p>
+                        </div>
+                    </header>
+                    <div class="st-ladder" data-ladder></div>
+                </section>
+            </aside>
+        </div>
+    </div>
+</section>
+
+<!-- Sezon yolculuğu -->
+<section class="da-section" aria-labelledby="stRaceTitle">
+    <div class="da-wrap">
+        <header class="da-sechead">
+            <div>
+                <p class="da-kicker"><i></i><span>Hafta hafta</span></p>
+                <h2 class="da-sechead__title" id="stRaceTitle">Sezon yolculuğu</h2>
+                <p class="da-sechead__sub" data-race-sub>Seçili takımların hafta sonundaki puanı. En fazla altı takım seçebilirsin.</p>
+            </div>
+            <div class="da-sechead__aside">
+                <div class="da-seg" role="group" aria-label="Grafik türü">
+                    <button type="button" class="da-seg__btn" data-race-mode="points" aria-pressed="true">Puan</button>
+                    <button type="button" class="da-seg__btn" data-race-mode="rank" aria-pressed="false">Sıra</button>
+                </div>
+            </div>
+        </header>
+        <div class="da-panel st-race" data-reveal>
+            <div class="st-race__picker" data-race-picker role="group" aria-label="Grafikteki takımlar"></div>
+            <div class="tm-chart" data-race-chart style="min-height:380px"></div>
+        </div>
+    </div>
+</section>
+
+<partial name="_SiteSeed" />
+
+@section Scripts {
+    <script src="~/js/standings.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,242 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@{
+    ViewData["Title"] = "Ana sayfa";
+    ViewData["BodyClass"] = "home-page";
+    ViewData["Description"] = "Serie A maç günü merkezi: canlı skorlar, haftanın maçları, zirve yarışı ve sezonun rakamları.";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<div class="hm">
+
+    <!-- ===================== 1. Sahne ===================== -->
+    <section class="hm-stage" aria-labelledby="hmTitle">
+        <partial name="_StageBackdrop" />
+        <div class="hm-stage__crowd" aria-hidden="true"></div>
+
+        <div class="da-wrap hm-stage__inner">
+            <div class="hm-stage__copy">
+                <p class="da-kicker" data-hero-kicker><i></i><span>Serie A 2026/27</span></p>
+                <h1 class="hm-title" id="hmTitle">
+                    <span class="hm-title__line"><span class="da-split" data-split>Doksan dakika</span></span>
+                    <span class="hm-title__line hm-title__line--accent"><span class="da-split" data-split>yetmez.</span></span>
+                </h1>
+                <p class="hm-lead" data-reveal style="--i:4">
+                    Serie A'nın canlı skorları, puan durumu ve haftalık fikstürü tek sahnede.
+                    Gol olduğu an tabela yanar, tablo yeniden dizilir; sayfayı yenilemene gerek yok.
+                </p>
+                <div class="hm-actions" data-reveal style="--i:5">
+                    <a class="da-btn da-btn--primary" asp-controller="Standings" asp-action="Index">
+                        <svg aria-hidden="true"><use href="#i-trophy" /></svg>
+                        Puan durumu
+                    </a>
+                    <a class="da-btn" asp-controller="Fixtures" asp-action="Index">
+                        <svg aria-hidden="true"><use href="#i-calendar" /></svg>
+                        Bu haftanın maçları
+                    </a>
+                </div>
+                <dl class="hm-facts" data-hero-facts data-reveal style="--i:6"></dl>
+            </div>
+
+            <div class="hm-stage__show">
+                <article class="hm-feature da-tilt" data-feature aria-live="polite"></article>
+                <div class="hm-pager" data-feature-pager role="group" aria-label="Canlı maçlar arasında geçiş"></div>
+            </div>
+        </div>
+    </section>
+
+    <partial name="_SiteError" />
+
+    <!-- ===================== 2. Haftanın maçları ===================== -->
+    <section class="da-section" aria-labelledby="hmWeekTitle">
+        <div class="da-wrap">
+            <header class="da-sechead">
+                <div>
+                    <p class="da-kicker" data-week-kicker><i></i><span>Maç günü</span></p>
+                    <h2 class="da-sechead__title" id="hmWeekTitle" data-week-title>Haftanın maçları</h2>
+                    <p class="da-sechead__sub" data-week-sub></p>
+                </div>
+                <div class="da-sechead__aside hm-weeknav">
+                    <button type="button" class="da-iconbtn" data-week-prev aria-label="Önceki hafta">
+                        <svg aria-hidden="true"><use href="#i-chev-left" /></svg>
+                    </button>
+                    <span class="da-board hm-weeknav__board" aria-hidden="true"><span class="da-led da-led--sm" data-week-led></span></span>
+                    <button type="button" class="da-iconbtn" data-week-next aria-label="Sonraki hafta">
+                        <svg aria-hidden="true"><use href="#i-chev-right" /></svg>
+                    </button>
+                    <a class="da-link" data-week-link href="/Fixtures">Fikstürde aç<svg aria-hidden="true"><use href="#i-arrow" /></svg></a>
+                </div>
+            </header>
+            <div class="hm-weekbar" data-week-bar aria-hidden="true"></div>
+            <div class="hm-matches" data-week-matches></div>
+        </div>
+    </section>
+
+    <!-- ===================== 3. Zirve ===================== -->
+    <section class="da-section" aria-labelledby="hmTopTitle">
+        <div class="da-wrap">
+            <header class="da-sechead">
+                <div>
+                    <p class="da-kicker"><i></i><span>Zirve</span></p>
+                    <h2 class="da-sechead__title" id="hmTopTitle">Tablonun iki ucu</h2>
+                    <p class="da-sechead__sub">Canlı maçlar o anki skoruyla sayılır; gol olunca sıralama yerinde değişir.</p>
+                </div>
+                <div class="da-sechead__aside">
+                    <a class="da-link" asp-controller="Standings" asp-action="Index">Tam puan durumu<svg aria-hidden="true"><use href="#i-arrow" /></svg></a>
+                </div>
+            </header>
+
+            <div class="hm-race">
+                <article class="da-panel hm-table" data-reveal>
+                    <header class="da-panel__head">
+                        <div>
+                            <h3 class="da-panel__title">Puan durumu</h3>
+                            <p class="da-panel__sub" data-table-sub>İlk altı ve son üç</p>
+                        </div>
+                        <span class="hm-table__live" data-table-live hidden><i class="da-pulse" aria-hidden="true"></i>Canlı tablo</span>
+                    </header>
+                    <ol class="hm-table__list" data-mini-table></ol>
+                    <footer class="hm-table__foot">
+                        <span class="da-zones">
+                            <span class="da-zones__item zone-ucl">Şampiyonlar Ligi</span>
+                            <span class="da-zones__item zone-uel">Avrupa Ligi</span>
+                            <span class="da-zones__item zone-uecl">Konferans Ligi</span>
+                            <span class="da-zones__item zone-rel">Küme düşme</span>
+                        </span>
+                    </footer>
+                </article>
+
+                <article class="da-panel hm-racechart" data-reveal style="--i:1">
+                    <header class="da-panel__head">
+                        <div>
+                            <h3 class="da-panel__title">Zirve yarışı</h3>
+                            <p class="da-panel__sub">İlk beş takımın hafta hafta topladığı puan. Bir çizginin üzerine gel, o hafta herkesin puanını gör.</p>
+                        </div>
+                    </header>
+                    <div class="tm-chart" data-race-chart style="min-height:330px"></div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 4. Sayılarla sezon ===================== -->
+    <section class="da-section" aria-labelledby="hmNumTitle">
+        <div class="da-wrap">
+            <header class="da-sechead">
+                <div>
+                    <p class="da-kicker"><i></i><span>Sezon</span></p>
+                    <h2 class="da-sechead__title" id="hmNumTitle">Sayılarla sezon</h2>
+                    <p class="da-sechead__sub">Biten maçlardan hesaplanır, her yeni sonuçla güncellenir.</p>
+                </div>
+            </header>
+
+            <div class="hm-kpis" data-kpis></div>
+
+            <div class="hm-leaders">
+                <article class="da-panel" data-reveal>
+                    <header class="da-panel__head">
+                        <div>
+                            <h3 class="da-panel__title"><svg class="hm-ico hm-ico--fire" aria-hidden="true"><use href="#i-fire" /></svg>Hücum</h3>
+                            <p class="da-panel__sub">Maç başına atılan gol</p>
+                        </div>
+                    </header>
+                    <div data-board-attack></div>
+                </article>
+                <article class="da-panel" data-reveal style="--i:1">
+                    <header class="da-panel__head">
+                        <div>
+                            <h3 class="da-panel__title"><svg class="hm-ico hm-ico--shield" aria-hidden="true"><use href="#i-shield" /></svg>Savunma</h3>
+                            <p class="da-panel__sub">Maç başına yenilen gol (az olan üstte)</p>
+                        </div>
+                    </header>
+                    <div data-board-defense></div>
+                </article>
+                <article class="da-panel" data-reveal style="--i:2">
+                    <header class="da-panel__head">
+                        <div>
+                            <h3 class="da-panel__title"><svg class="hm-ico hm-ico--chart" aria-hidden="true"><use href="#i-chart" /></svg>Form</h3>
+                            <p class="da-panel__sub">Son beş maçta toplanan puan</p>
+                        </div>
+                    </header>
+                    <div data-board-form></div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 5. Anlar ve sıradakiler ===================== -->
+    <section class="da-section" aria-labelledby="hmMomentsTitle">
+        <div class="da-wrap hm-duo">
+            <article class="da-panel hm-records" data-reveal>
+                <header class="da-panel__head">
+                    <div>
+                        <h2 class="da-panel__title" id="hmMomentsTitle">Sezonun anları</h2>
+                        <p class="da-panel__sub">Rekor skorlar ve süren seriler</p>
+                    </div>
+                </header>
+                <ul class="hm-records__list" data-records></ul>
+            </article>
+
+            <article class="da-panel hm-upcoming" data-reveal style="--i:1">
+                <header class="da-panel__head">
+                    <div>
+                        <h2 class="da-panel__title">Takvimde sırada</h2>
+                        <p class="da-panel__sub">Başlama saatine kalan süreyle</p>
+                    </div>
+                    <a class="da-link" asp-controller="Fixtures" asp-action="Index">Fikstür<svg aria-hidden="true"><use href="#i-arrow" /></svg></a>
+                </header>
+                <ul class="hm-upcoming__list" data-upcoming></ul>
+            </article>
+        </div>
+    </section>
+
+    <!-- ===================== 6. Duraklar ===================== -->
+    <section class="da-section" aria-labelledby="hmStopsTitle">
+        <div class="da-wrap">
+            <header class="da-sechead">
+                <div>
+                    <p class="da-kicker"><i></i><span>Nereden başlasan</span></p>
+                    <h2 class="da-sechead__title" id="hmStopsTitle">Bir maç günü, dört durak</h2>
+                </div>
+            </header>
+            <div class="hm-stops" data-stops>
+                <a class="hm-stop" asp-controller="Fixtures" asp-action="Index" data-reveal style="--i:0">
+                    <span class="hm-stop__num" aria-hidden="true">01</span>
+                    <span class="hm-stop__icon"><svg aria-hidden="true"><use href="#i-calendar" /></svg></span>
+                    <strong class="hm-stop__title">Fikstür</strong>
+                    <span class="hm-stop__text">Haftanın maçları gün gün: başlama saatleri, canlı dakikalar, biten maçların skorları.</span>
+                    <span class="hm-stop__hint" data-stop="fixtures"></span>
+                </a>
+                <a class="hm-stop" data-stop-link="match" href="/Fixtures" data-reveal style="--i:1">
+                    <span class="hm-stop__num" aria-hidden="true">02</span>
+                    <span class="hm-stop__icon"><svg aria-hidden="true"><use href="#i-live" /></svg></span>
+                    <strong class="hm-stop__title">Maç merkezi</strong>
+                    <span class="hm-stop__text">Canlı skor, kazanma ihtimali, iki takımın formu ve sonucun tabloya etkisi.</span>
+                    <span class="hm-stop__hint" data-stop="match"></span>
+                </a>
+                <a class="hm-stop" asp-controller="Standings" asp-action="Index" data-reveal style="--i:2">
+                    <span class="hm-stop__num" aria-hidden="true">03</span>
+                    <span class="hm-stop__icon"><svg aria-hidden="true"><use href="#i-trophy" /></svg></span>
+                    <strong class="hm-stop__title">Puan durumu</strong>
+                    <span class="hm-stop__text">Canlı tablo, iç saha ve deplasman sıralaması, haftalar arasında geçmişe yolculuk.</span>
+                    <span class="hm-stop__hint" data-stop="standings"></span>
+                </a>
+                <a class="hm-stop" asp-controller="Clubs" asp-action="Index" data-reveal style="--i:3">
+                    <span class="hm-stop__num" aria-hidden="true">04</span>
+                    <span class="hm-stop__icon"><svg aria-hidden="true"><use href="#i-shield" /></svg></span>
+                    <strong class="hm-stop__title">Kulüpler</strong>
+                    <span class="hm-stop__text">Yirmi kulübün sezonu: sıra grafiği, sonuçlar, iç saha ve deplasman karnesi.</span>
+                    <span class="hm-stop__hint" data-stop="clubs"></span>
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<partial name="_SiteSeed" />
+
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+}

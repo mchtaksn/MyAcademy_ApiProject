@@ -1,0 +1,10 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@if (Model.Error != null)
+{
+    <div class="da-wrap">
+        <div class="da-alert" role="alert">
+            <svg width="20" height="20" aria-hidden="true"><use href="#i-whistle" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    </div>
+}

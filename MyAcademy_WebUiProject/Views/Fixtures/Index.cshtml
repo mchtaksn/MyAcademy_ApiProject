@@ -1,0 +1,95 @@
+﻿@model MyAcademy_WebUiProject.Models.Site.SitePageModel
+@{
+    ViewData["Title"] = Model.Team != null ? Model.Team.Name + " fikstürü" : Model.Week != null ? Model.Week + ". hafta fikstürü" : "Fikstür";
+    ViewData["BodyClass"] = "fixtures-page";
+    ViewData["Description"] = "Serie A haftalık fikstürü: başlama saatleri, canlı dakikalar, biten maçların skorları ve takım takım sezon programı.";
+    var teams = Model.Data.Teams.OrderBy(t => t.Name).ToList();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/fixtures.css" asp-append-version="true" />
+}
+
+<section class="da-pagehead fx-head" aria-labelledby="fxTitle">
+    <partial name="_StageBackdrop" />
+    <div class="da-wrap da-pagehead__inner">
+        <div>
+            <p class="da-kicker" data-fx-kicker><i></i><span>Serie A 2026/27</span></p>
+            <h1 class="da-pagehead__title" id="fxTitle"><span class="da-split" data-split>Fikstür</span></h1>
+            <p class="da-pagehead__lead" data-fx-lead>Haftanın maçları gün gün. Canlı maçların dakikası ve skoru sayfa yenilenmeden ilerler.</p>
+        </div>
+
+        <div class="fx-weekboard" data-weekboard>
+            <button type="button" class="da-iconbtn fx-weekboard__nav" data-week-prev aria-label="Önceki hafta">
+                <svg aria-hidden="true"><use href="#i-chev-left" /></svg>
+            </button>
+            <div class="fx-weekboard__center">
+                <span class="da-board da-board--xl fx-weekboard__board" aria-hidden="true"><span class="da-led da-led--xl" data-week-led></span></span>
+                <div class="fx-weekboard__meta">
+                    <strong data-week-title>Hafta</strong>
+                    <span data-week-range></span>
+                </div>
+            </div>
+            <button type="button" class="da-iconbtn fx-weekboard__nav" data-week-next aria-label="Sonraki hafta">
+                <svg aria-hidden="true"><use href="#i-chev-right" /></svg>
+            </button>
+        </div>
+    </div>
+</section>
+
+<partial name="_SiteError" />
+
+<section class="da-section fx-main" aria-label="Maçlar">
+    <div class="da-wrap">
+
+        <!-- 38 haftalık şerit -->
+        <nav class="fx-rail" aria-label="Haftalar">
+            <button type="button" class="da-iconbtn fx-rail__arrow" data-rail-left aria-label="Haftaları sola kaydır" tabindex="-1">
+                <svg aria-hidden="true"><use href="#i-chev-left" /></svg>
+            </button>
+            <div class="fx-rail__viewport" data-rail-viewport>
+                <div class="fx-rail__track" data-rail></div>
+            </div>
+            <button type="button" class="da-iconbtn fx-rail__arrow" data-rail-right aria-label="Haftaları sağa kaydır" tabindex="-1">
+                <svg aria-hidden="true"><use href="#i-chev-right" /></svg>
+            </button>
+        </nav>
+
+        <!-- Araçlar -->
+        <div class="fx-tools">
+            <div class="fx-summary" data-summary></div>
+            <div class="fx-tools__right">
+                <label class="da-switch fx-liveonly" data-liveonly-wrap hidden>
+                    <input type="checkbox" data-liveonly>
+                    <span class="da-switch__track" aria-hidden="true"></span>
+                    <span>Sadece canlı</span>
+                </label>
+                <label class="fx-teampick">
+                    <span class="visually-hidden">Takıma göre süz</span>
+                    <select class="da-select" data-team>
+                        <option value="">Bütün takımlar</option>
+                        @foreach (var t in teams)
+                        {
+                            <option value="@t.Id" selected="@(Model.TeamId == t.Id)">@t.Name</option>
+                        }
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="fx-progress" data-progress-bar aria-hidden="true"></div>
+
+        <!-- Hafta görünümü -->
+        <div class="fx-days" data-days></div>
+
+        <!-- Takım görünümü -->
+        <div class="fx-teamview" data-teamview hidden></div>
+    </div>
+</section>
+
+<partial name="_SiteSeed" />
+
+@section Scripts {
+    <script>window.DA_FX = { week: @(Model.Week?.ToString() ?? "null"), team: @(Model.TeamId?.ToString() ?? "null") };</script>
+    <script src="~/js/fixtures.js" asp-append-version="true"></script>
+}

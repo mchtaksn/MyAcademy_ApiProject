@@ -1,0 +1,140 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminSnapshot
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Puan durumu";
+    ViewData["BodyClass"] = "tm-page-standings";
+}
+
+<div class="tm-page tm-standings">
+    <header class="tm-head">
+        <div class="tm-head__text">
+            <h1 class="tm-title">Puan durumu</h1>
+            <p class="tm-lead">Tablo biten maçlardan anında hesaplanır. Haftalar arasında gezin, iç saha ve deplasman tablolarına bak, senaryo masasında olası skorları dene.</p>
+        </div>
+        <div class="tm-head__actions">
+            <a class="tm-btn tm-btn--ghost" asp-controller="Standings" asp-action="Index" target="_blank" rel="noopener">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-external" /></svg>
+                Sitede gör
+            </a>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <!-- Kontroller -->
+    <div class="tm-stbar">
+        <div class="tm-seg" role="group" aria-label="Tablo türü">
+            <button type="button" class="tm-seg__btn" data-venue="all" aria-pressed="true">Genel</button>
+            <button type="button" class="tm-seg__btn" data-venue="home" aria-pressed="false">İç saha</button>
+            <button type="button" class="tm-seg__btn" data-venue="away" aria-pressed="false">Deplasman</button>
+        </div>
+
+        <div class="tm-timeline" data-timeline>
+            <span class="da-board tm-timeline__board" aria-hidden="true"><span class="da-led da-led--xs" data-week-led></span></span>
+            <label class="tm-timeline__label" for="tmWeekRange"><strong data-week-text>Son durum</strong><small>Haftayı kaydırıp geçmişe dön</small></label>
+            <input class="tm-range" id="tmWeekRange" type="range" min="1" max="1" value="1" step="1" data-week-range>
+            <button type="button" class="tm-iconbtn" data-week-play title="Sezonu baştan oynat" aria-label="Sezonu baştan oynat">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-play" /></svg>
+            </button>
+        </div>
+
+        <label class="tm-switch" data-live-switch hidden>
+            <input type="checkbox" data-include-live>
+            <span class="tm-switch__track" aria-hidden="true"><span></span></span>
+            <span>Canlı skorları say</span>
+        </label>
+    </div>
+
+    <div class="tm-scenario-banner" data-scenario-banner hidden>
+        <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-wand" /></svg>
+        <p><strong>Senaryo modu.</strong> Tablo, senaryo masasına girdiğin skorlarla hesaplanıyor. Oklar gerçek tabloya göre değişimi gösterir.</p>
+        <button type="button" class="tm-btn tm-btn--small" data-scenario-reset>Senaryoyu temizle</button>
+    </div>
+
+    <div class="tm-stgrid">
+        <!-- Tablo -->
+        <section class="tm-panel tm-panel--flush" aria-label="Puan tablosu">
+            <div class="tm-tablewrap">
+                <table class="tm-table tm-standtable">
+                    <caption class="visually-hidden" data-table-caption>Puan durumu</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" class="tm-standtable__rank">#</th>
+                            <th scope="col">Takım</th>
+                            <th scope="col" class="tm-col-num"><abbr title="Oynanan">O</abbr></th>
+                            <th scope="col" class="tm-col-num tm-col-hide-xs"><abbr title="Galibiyet">G</abbr></th>
+                            <th scope="col" class="tm-col-num tm-col-hide-xs"><abbr title="Beraberlik">B</abbr></th>
+                            <th scope="col" class="tm-col-num tm-col-hide-xs"><abbr title="Mağlubiyet">M</abbr></th>
+                            <th scope="col" class="tm-col-num tm-col-hide-sm"><abbr title="Atılan gol">A</abbr></th>
+                            <th scope="col" class="tm-col-num tm-col-hide-sm"><abbr title="Yenilen gol">Y</abbr></th>
+                            <th scope="col" class="tm-col-num"><abbr title="Averaj">AV</abbr></th>
+                            <th scope="col" class="tm-standtable__pts">P</th>
+                            <th scope="col" class="tm-col-hide-md">Son 5</th>
+                        </tr>
+                    </thead>
+                    <tbody data-standings></tbody>
+                </table>
+            </div>
+            <footer class="tm-zones" aria-label="Bölgeler">
+                <span class="tm-zones__item tm-zones__item--ucl">Şampiyonlar Ligi</span>
+                <span class="tm-zones__item tm-zones__item--uel">Avrupa Ligi</span>
+                <span class="tm-zones__item tm-zones__item--uecl">Konferans Ligi</span>
+                <span class="tm-zones__item tm-zones__item--rel">Küme düşme</span>
+                <span class="tm-zones__note">Eşitlikte averaj, sonra atılan gol</span>
+            </footer>
+        </section>
+
+        <aside class="tm-stside">
+            <!-- Takım kartı -->
+            <section class="tm-panel tm-teamcard2" aria-live="polite" data-teamcard></section>
+
+            <!-- Senaryo masası -->
+            <section class="tm-panel tm-scenario" aria-labelledby="tmScenarioTitle">
+                <header class="tm-panel__head">
+                    <div>
+                        <h2 class="tm-panel__title" id="tmScenarioTitle">Senaryo masası</h2>
+                        <p class="tm-panel__sub" data-scenario-sub>Oynanmamış maçlara skor ver, tablo nasıl değişir gör</p>
+                    </div>
+                    <span class="tm-scenario__icon" aria-hidden="true"><svg class="tm-icon"><use href="#tm-i-wand" /></svg></span>
+                </header>
+                <ul class="tm-scenario__list" data-scenario-list></ul>
+                <p class="tm-empty" data-scenario-empty hidden>Bu haftada oynanmamış maç kalmadı.</p>
+                <footer class="tm-scenario__foot" data-scenario-foot>
+                    <button type="button" class="tm-btn tm-btn--ghost tm-btn--small" data-scenario-reset>Sıfırla</button>
+                    <button type="button" class="tm-btn tm-btn--primary tm-btn--small" data-scenario-save disabled>
+                        <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-check" /></svg>
+                        <span data-scenario-save-label>Sonuç olarak kaydet</span>
+                    </button>
+                </footer>
+            </section>
+        </aside>
+    </div>
+
+    <!-- Puan yarışı -->
+    <section class="tm-panel tm-panel--chart tm-race" aria-labelledby="tmRaceTitle">
+        <header class="tm-panel__head">
+            <div>
+                <h2 class="tm-panel__title" id="tmRaceTitle">Sezon yolculuğu</h2>
+                <p class="tm-panel__sub" data-race-sub>Seçili takımların hafta hafta puanı</p>
+            </div>
+            <div class="tm-seg" role="group" aria-label="Grafik türü">
+                <button type="button" class="tm-seg__btn" data-race-mode="points" aria-pressed="true">Puan</button>
+                <button type="button" class="tm-seg__btn" data-race-mode="rank" aria-pressed="false">Sıra</button>
+            </div>
+        </header>
+        <div class="tm-race__picker" data-race-picker role="group" aria-label="Grafikte gösterilecek takımlar (en fazla 6)"></div>
+        <div class="tm-chart" data-race-chart style="min-height:342px"></div>
+    </section>
+</div>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Teams, matches = Model.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-standings.js" asp-append-version="true"></script>
+}

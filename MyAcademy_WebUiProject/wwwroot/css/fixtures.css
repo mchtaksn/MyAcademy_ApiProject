@@ -1,0 +1,1062 @@
+﻿/* =================================================================
+   Doksan Artı — fikstür (fixtures.css)
+   1  Başlık ve hafta tabelası
+   2  38 haftalık şerit
+   3  Araçlar, özet, ilerleme şeridi
+   4  Gün grupları
+   5  Maç satırı
+   6  Takım görünümü
+   7  Responsive
+   8  Hareket azaltma
+   ================================================================= */
+
+/* 1. Başlık ve hafta tabelası --------------------------------------- */
+.fx-head .da-pagehead__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.fx-weekboard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.fx-weekboard__center {
+    display: grid;
+    justify-items: center;
+    gap: clamp(36px, 5vw, 54px);
+}
+
+.fx-weekboard__board {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1), 0 20px 60px rgba(0, 0, 0, .55), 0 0 50px rgba(59, 255, 143, .08);
+}
+
+    .fx-weekboard__board.is-live {
+        box-shadow: inset 0 0 0 1px rgba(255, 61, 90, .5), 0 20px 60px rgba(0, 0, 0, .55), 0 0 50px rgba(255, 61, 90, .2);
+    }
+
+    .fx-weekboard__board .da-led--xl {
+        --dot: clamp(6px, 1.1vw, 10px);
+        --gap: clamp(2px, .3vw, 3px);
+    }
+
+.fx-weekboard__meta {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+    .fx-weekboard__meta strong {
+        color: #fff;
+        font: 800 1.5rem/1 var(--da-font-display);
+    }
+
+    .fx-weekboard__meta > span {
+        color: var(--da-muted);
+        font-size: .85rem;
+    }
+
+.fx-weekboard__state {
+    font-weight: 700;
+}
+
+    .fx-weekboard__state.is-live {
+        color: #FF8FA0;
+    }
+
+    .fx-weekboard__state.is-done {
+        color: #7EEBB0;
+    }
+
+    .fx-weekboard__state.is-partial {
+        color: #FFD27A;
+    }
+
+    .fx-weekboard__state.is-plan {
+        color: #A9C8FF;
+    }
+
+.fx-weekboard__nav {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.fx-weekboard.is-team .fx-weekboard__nav {
+    visibility: hidden;
+}
+
+/* 2. Şerit --------------------------------------------------------- */
+.fx-main {
+    padding-top: 26px;
+}
+
+.fx-rail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fx-rail__arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+}
+
+.fx-rail__viewport {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+}
+
+    .fx-rail__viewport::-webkit-scrollbar {
+        display: none;
+    }
+
+.fx-rail__track {
+    display: flex;
+    gap: 6px;
+    width: max-content;
+    padding: 6px 20px;
+}
+
+.fx-pill {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 5px;
+    width: 46px;
+    height: 54px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .04);
+    box-shadow: inset 0 0 0 1px var(--da-line);
+    color: var(--da-text-2);
+    cursor: pointer;
+    transition: transform .25s var(--da-ease-out), background-color .2s ease, box-shadow .2s ease;
+}
+
+    .fx-pill b {
+        font: 800 1.1rem/1 var(--da-font-display);
+    }
+
+    .fx-pill:hover:not(:disabled) {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, .08);
+        color: #fff;
+    }
+
+    .fx-pill:focus-visible {
+        outline: 2px solid var(--da-blue-bright);
+        outline-offset: 2px;
+    }
+
+.fx-pill__bar {
+    position: relative;
+    width: 24px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, .1);
+    overflow: hidden;
+}
+
+    .fx-pill__bar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        width: var(--p);
+        background: var(--da-win);
+    }
+
+.fx-pill .da-pulse {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+}
+
+.fx-pill.is-done {
+    color: var(--da-muted);
+}
+
+.fx-pill.is-live {
+    box-shadow: inset 0 0 0 1px rgba(255, 61, 90, .55);
+    color: #fff;
+}
+
+.fx-pill.is-current::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 5px;
+    height: 5px;
+    margin-left: -2.5px;
+    border-radius: 50%;
+    background: var(--da-led-green);
+    box-shadow: 0 0 8px var(--da-led-green-glow);
+}
+
+.fx-pill.is-selected {
+    background: linear-gradient(180deg, #2E7BFF, #2462E8);
+    box-shadow: 0 10px 24px rgba(46, 123, 255, .4);
+    color: #fff;
+}
+
+    .fx-pill.is-selected .fx-pill__bar {
+        background: rgba(255, 255, 255, .25);
+    }
+
+        .fx-pill.is-selected .fx-pill__bar::after {
+            background: #fff;
+        }
+
+.fx-pill.is-empty {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+    color: var(--da-dim);
+    cursor: default;
+    opacity: .55;
+    background-image: repeating-linear-gradient(-45deg, rgba(255, 255, 255, .02) 0 5px, transparent 5px 10px);
+}
+
+/* 3. Araçlar ------------------------------------------------------- */
+.fx-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.fx-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fx-sum {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .04);
+    box-shadow: inset 0 0 0 1px var(--da-line);
+    color: var(--da-text-2);
+    font-size: .85rem;
+}
+
+    .fx-sum b {
+        color: #fff;
+        font: 800 1.05rem var(--da-font-display);
+    }
+
+    .fx-sum svg {
+        width: 15px;
+        height: 15px;
+    }
+
+.fx-sum--live {
+    background: rgba(255, 61, 90, .12);
+    box-shadow: inset 0 0 0 1px rgba(255, 61, 90, .5);
+    color: #FFC3CD;
+}
+
+.fx-sum--done b {
+    color: #7EEBB0;
+}
+
+.fx-sum--late {
+    box-shadow: inset 0 0 0 1px rgba(255, 176, 32, .4);
+}
+
+.fx-sum--goals {
+    color: var(--da-gold);
+}
+
+.fx-tools__right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+    .fx-tools__right .da-switch[hidden] {
+        display: none;
+    }
+
+.fx-teampick .da-select {
+    min-width: 210px;
+}
+
+.fx-progress {
+    display: flex;
+    gap: 3px;
+    margin: 16px 0 6px;
+}
+
+    .fx-progress span {
+        flex: 1;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(46, 123, 255, .3);
+    }
+
+        .fx-progress span.is-done {
+            background: var(--da-win);
+        }
+
+        .fx-progress span.is-live {
+            background: var(--da-live);
+            box-shadow: 0 0 10px var(--da-live-glow);
+            animation: da-pulse-dot 1.4s ease-in-out infinite;
+        }
+
+        .fx-progress span.is-post {
+            background: repeating-linear-gradient(-45deg, var(--da-amber) 0 3px, transparent 3px 6px);
+        }
+
+        .fx-progress span.is-late {
+            background: rgba(255, 176, 32, .6);
+        }
+
+/* 4. Gün grupları --------------------------------------------------- */
+.fx-days {
+    display: grid;
+    gap: 28px;
+    margin-top: 22px;
+}
+
+    .fx-days.is-swap-r {
+        animation: fx-swap-r .5s var(--da-ease-out);
+    }
+
+    .fx-days.is-swap-l {
+        animation: fx-swap-l .5s var(--da-ease-out);
+    }
+
+@keyframes fx-swap-r {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+}
+
+@keyframes fx-swap-l {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+}
+
+.fx-day__head {
+    position: sticky;
+    top: var(--da-header-h);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    padding: 10px 4px;
+    background: linear-gradient(180deg, var(--da-bg) 70%, rgba(7, 15, 31, 0));
+}
+
+.fx-day__date {
+    display: grid;
+    justify-items: center;
+    width: 50px;
+    padding: 6px 0;
+    border-radius: 12px;
+    background: rgba(46, 123, 255, .12);
+    box-shadow: inset 0 0 0 1px rgba(91, 155, 255, .3);
+    line-height: 1;
+}
+
+    .fx-day__date b {
+        color: #fff;
+        font: 800 1.5rem var(--da-font-display);
+    }
+
+    .fx-day__date small {
+        margin-top: 3px;
+        color: var(--da-blue-bright);
+        font-size: .66rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+.fx-day.is-today .fx-day__date {
+    background: rgba(59, 255, 143, .1);
+    box-shadow: inset 0 0 0 1px rgba(59, 255, 143, .45);
+}
+
+    .fx-day.is-today .fx-day__date small {
+        color: var(--da-led-green);
+    }
+
+.fx-day__title {
+    color: #fff;
+    font: 800 1.5rem/1 var(--da-font-display);
+    text-transform: capitalize;
+}
+
+    .fx-day__title em {
+        margin-left: 8px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: rgba(59, 255, 143, .14);
+        color: var(--da-led-green);
+        font: 700 .72rem var(--da-font-body);
+        font-style: normal;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+.fx-day__count {
+    margin-left: auto;
+    color: var(--da-dim);
+    font-size: .85rem;
+}
+
+    .fx-day__count b {
+        color: #FF8FA0;
+    }
+
+.fx-day__list {
+    display: grid;
+    gap: 8px;
+}
+
+/* 5. Maç satırı ----------------------------------------------------- */
+.fx-row {
+    --ha: #2E7BFF;
+    --aa: #FF4560;
+    position: relative;
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) 104px minmax(0, 1fr) minmax(170px, 230px) 26px;
+    align-items: center;
+    gap: 14px;
+    min-height: 78px;
+    padding: 10px 14px 10px 10px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(90deg, rgba(20, 37, 70, .85), rgba(13, 26, 52, .85));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+    color: var(--da-text);
+    text-decoration: none;
+    transition: transform .3s var(--da-ease-out), box-shadow .25s ease, background-color .25s ease;
+}
+
+    .fx-row::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 30% 120% at 32% 50%, color-mix(in srgb, var(--ha) 14%, transparent), transparent 70%), radial-gradient(ellipse 30% 120% at 68% 50%, color-mix(in srgb, var(--aa) 14%, transparent), transparent 70%);
+        opacity: 0;
+        transition: opacity .35s ease;
+        pointer-events: none;
+    }
+
+    .fx-row.is-derby {
+        box-shadow: inset 0 0 0 1px rgba(255, 138, 91, .45), 0 0 0 1px rgba(255, 138, 91, .1);
+    }
+
+.fx-row__derby {
+    position: absolute;
+    top: 6px;
+    right: 40px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #FF3D5A, #FFB020);
+    color: #1A0E06;
+    font: 800 .6rem/1 var(--da-font-display);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+    white-space: nowrap;
+}
+
+    .fx-row__derby svg {
+        width: 11px;
+        height: 11px;
+    }
+
+.fx-row:hover {
+    transform: translateX(4px);
+    box-shadow: inset 0 0 0 1px rgba(91, 155, 255, .4), 0 14px 34px rgba(0, 0, 0, .3);
+    color: var(--da-text);
+}
+
+    .fx-row:hover::before {
+        opacity: 1;
+    }
+
+.fx-row:focus-visible {
+    outline: 2px solid var(--da-blue-bright);
+    outline-offset: 3px;
+}
+
+.fx-days.is-entering .fx-row {
+    animation: fx-row-in .6s var(--da-ease-out) both;
+    animation-delay: calc(var(--i) * 45ms + .1s);
+}
+
+@keyframes fx-row-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+
+.fx-row__time {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 8px 0;
+    border-radius: 12px;
+    background: rgba(5, 10, 21, .45);
+    line-height: 1;
+}
+
+    .fx-row__time b {
+        color: #fff;
+        font: 800 1.25rem var(--da-font-display);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .fx-row__time small {
+        color: var(--da-dim);
+        font-size: .68rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .fx-row__time.is-live {
+        background: rgba(255, 61, 90, .14);
+        box-shadow: inset 0 0 0 1px rgba(255, 61, 90, .5);
+    }
+
+        .fx-row__time.is-live b {
+            color: #fff;
+        }
+
+        .fx-row__time.is-live small {
+            color: #FFC3CD;
+        }
+
+    .fx-row__time.is-done b {
+        color: var(--da-text-2);
+    }
+
+    .fx-row__time.is-post {
+        background: repeating-linear-gradient(-45deg, rgba(255, 176, 32, .14) 0 6px, rgba(255, 176, 32, .05) 6px 12px);
+    }
+
+        .fx-row__time.is-post b {
+            color: #FFDCA0;
+        }
+
+    .fx-row__time.is-late {
+        box-shadow: inset 0 0 0 1px rgba(255, 176, 32, .45);
+    }
+
+.fx-mini-ring {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: conic-gradient(var(--da-live) var(--p), rgba(255, 255, 255, .1) 0);
+    -webkit-mask: radial-gradient(circle, transparent 3px, #000 3.5px);
+    mask: radial-gradient(circle, transparent 3px, #000 3.5px);
+}
+
+.fx-row__team {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+}
+
+.fx-row__team--home {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.fx-row__name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fx-row__team .da-crest {
+    transition: transform .4s var(--da-ease-spring);
+}
+
+.fx-row:hover .fx-row__team .da-crest {
+    transform: scale(1.12);
+}
+
+.fx-row__team.is-lose {
+    color: var(--da-muted);
+}
+
+    .fx-row__team.is-lose .da-crest {
+        opacity: .7;
+    }
+
+.fx-row__team.is-focus .fx-row__name {
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-color: rgba(91, 155, 255, .6);
+    text-underline-offset: 4px;
+}
+
+.fx-row__score {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    border-radius: 12px;
+    background: #04070E;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), 0 6px 14px rgba(0, 0, 0, .35);
+}
+
+    .fx-row__score b {
+        display: inline-block;
+        min-width: 1ch;
+        color: #fff;
+        font: 800 1.75rem/1 var(--da-font-display);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .fx-row__score i {
+        color: var(--da-dim);
+        font-style: normal;
+        font-weight: 700;
+    }
+
+    .fx-row__score.is-empty {
+        background: rgba(255, 255, 255, .03);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+    }
+
+        .fx-row__score.is-empty i {
+            font: 700 .9rem var(--da-font-display);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+.fx-row.is-live .fx-row__score {
+    box-shadow: inset 0 0 0 1px rgba(59, 255, 143, .3), 0 0 20px rgba(59, 255, 143, .12);
+}
+
+    .fx-row.is-live .fx-row__score b {
+        color: var(--da-led-green);
+        text-shadow: 0 0 10px var(--da-led-green-glow);
+    }
+
+.fx-row__score b.is-turn {
+    animation: fx-turn .8s var(--da-ease-spring);
+}
+
+@keyframes fx-turn {
+    from {
+        transform: rotateX(90deg) scale(1.5);
+        opacity: 0;
+    }
+}
+
+.fx-row__meta {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    color: var(--da-dim);
+    font-size: .8rem;
+}
+
+    .fx-row__meta svg {
+        width: 13px;
+        height: 13px;
+        margin-right: 5px;
+        vertical-align: -2px;
+    }
+
+    .fx-row__meta.is-late {
+        color: #FFD27A;
+    }
+
+.fx-row__meta {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fx-row__venue {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fx-row__until {
+    color: var(--da-text-2);
+    font-weight: 600;
+}
+
+.fx-row__prob {
+    display: flex;
+    gap: 2px;
+    height: 5px;
+}
+
+    .fx-row__prob span {
+        flex: 0 0 var(--w);
+        min-width: 2px;
+        border-radius: 3px;
+        background: var(--c, #8E9BB5);
+    }
+
+        .fx-row__prob span.is-draw {
+            background: rgba(142, 155, 181, .45);
+        }
+
+.fx-row__res {
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    box-shadow: 0 0 0 2px #0D1A34;
+    width: 16px !important;
+    height: 16px !important;
+    font-size: .62rem !important;
+}
+
+.fx-row__go {
+    display: grid;
+    place-items: center;
+    color: var(--da-dim);
+    transition: transform .3s var(--da-ease-out), color .2s ease;
+}
+
+    .fx-row__go svg {
+        width: 18px;
+        height: 18px;
+    }
+
+.fx-row:hover .fx-row__go {
+    color: #fff;
+    transform: translateX(3px);
+}
+
+.fx-row.is-live {
+    background: linear-gradient(90deg, rgba(255, 61, 90, .14), rgba(20, 37, 70, .85) 30%, rgba(13, 26, 52, .85));
+    box-shadow: inset 0 0 0 1px rgba(255, 61, 90, .4), inset 4px 0 0 var(--da-live);
+}
+
+.fx-row.is-post {
+    opacity: .8;
+}
+
+    .fx-row.is-post .fx-row__team {
+        color: var(--da-muted);
+    }
+
+.fx-row.is-changed {
+    animation: fx-changed 2s ease;
+}
+
+.fx-row.is-goal {
+    animation: fx-goal 2.2s ease;
+}
+
+@keyframes fx-changed {
+    0%, 40% {
+        box-shadow: inset 0 0 0 2px var(--da-blue-bright), 0 0 30px rgba(91, 155, 255, .35);
+    }
+}
+
+@keyframes fx-goal {
+    0%, 20%, 50% {
+        box-shadow: inset 0 0 0 2px var(--da-led-green), 0 0 40px rgba(59, 255, 143, .4);
+        transform: scale(1.01);
+    }
+
+    35%, 65% {
+        box-shadow: inset 0 0 0 1px rgba(59, 255, 143, .2);
+    }
+}
+
+/* 6. Takım görünümü ------------------------------------------------- */
+.fx-teamview {
+    margin-top: 22px;
+}
+
+.fx-teamhead {
+    --tc: #2E7BFF;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px 26px;
+    padding: 22px 24px;
+    overflow: hidden;
+    background: radial-gradient(ellipse 50% 140% at 0% 50%, color-mix(in srgb, var(--tc) 26%, transparent), transparent 70%), var(--da-glass);
+}
+
+.fx-teamhead__crest {
+    display: inline-grid;
+    filter: drop-shadow(0 0 24px color-mix(in srgb, var(--tc) 55%, transparent));
+}
+
+.fx-teamhead__text h2 {
+    color: #fff;
+    font: 800 2.4rem/1 var(--da-font-display);
+}
+
+.fx-teamhead__text p:last-child {
+    margin-top: 6px !important;
+    color: var(--da-muted);
+    font-size: .9rem;
+}
+
+.fx-teamhead__text .da-kicker {
+    margin-bottom: 6px !important;
+}
+
+.fx-teamhead__stats {
+    display: flex;
+    gap: 24px;
+}
+
+    .fx-teamhead__stats div {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+    }
+
+    .fx-teamhead__stats dt {
+        color: var(--da-dim);
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .fx-teamhead__stats dd {
+        color: #fff;
+        font: 800 1.7rem/1 var(--da-font-display);
+    }
+
+.fx-teamhead__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.fx-teamstrip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 18px 0 6px;
+}
+
+    .fx-teamstrip .da-form__pill {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        font-size: .82rem;
+        text-decoration: none;
+        transition: transform .2s var(--da-ease-spring);
+    }
+
+        .fx-teamstrip .da-form__pill:hover {
+            transform: translateY(-3px) scale(1.1);
+        }
+
+.fx-teamlist {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.fx-teamweek {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+}
+
+.fx-teamweek__no {
+    display: grid;
+    justify-items: center;
+    line-height: 1;
+}
+
+    .fx-teamweek__no b {
+        color: #fff;
+        font: 800 1.6rem var(--da-font-display);
+    }
+
+    .fx-teamweek__no small {
+        margin-top: 2px;
+        color: var(--da-dim);
+        font-size: .66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+.fx-teamweek__row {
+    display: grid;
+    gap: 4px;
+}
+
+.fx-teamweek__date {
+    padding-left: 4px;
+    color: var(--da-dim);
+    font-size: .74rem;
+    font-weight: 600;
+}
+
+/* 7. Responsive ----------------------------------------------------- */
+@media (max-width: 1080px) {
+    .fx-row {
+        grid-template-columns: 84px minmax(0, 1fr) 92px minmax(0, 1fr) 22px;
+    }
+
+    .fx-row__meta {
+        display: none;
+    }
+
+    .fx-teamhead {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .fx-teamhead__stats {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 860px) {
+    .fx-head .da-pagehead__inner {
+        grid-template-columns: 1fr;
+    }
+
+    .fx-weekboard {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .fx-row {
+        grid-template-columns: 62px minmax(0, 1fr) 70px minmax(0, 1fr);
+        gap: 8px;
+        min-height: 70px;
+        padding: 8px 10px 8px 8px;
+    }
+
+    .fx-row__go {
+        display: none;
+    }
+
+    .fx-row__team {
+        gap: 5px;
+        font-size: .82rem;
+        text-align: center;
+    }
+
+    /* Arma üstte, isim altta (ev sahibinde arma son eleman) */
+    .fx-row__team--home {
+        flex-direction: column-reverse;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .fx-row__team--away {
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .fx-row__name {
+        max-width: 100%;
+    }
+
+    .fx-row__score {
+        height: 42px;
+    }
+
+        .fx-row__score b {
+            font-size: 1.4rem;
+        }
+
+    .fx-row__time b {
+        font-size: 1.05rem;
+    }
+
+    .fx-row__time small {
+        font-size: .6rem;
+    }
+
+    .fx-tools,
+    .fx-tools__right {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fx-teampick .da-select {
+        width: 100%;
+    }
+
+    .fx-rail__arrow {
+        display: none;
+    }
+
+    .fx-day__title {
+        font-size: 1.25rem;
+    }
+
+    .fx-teamhead__stats {
+        gap: 14px;
+    }
+
+    .fx-teamweek {
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 8px;
+    }
+}
+
+/* 8. Hareket azaltma ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+    .fx-days.is-swap-r,
+    .fx-days.is-swap-l,
+    .fx-days.is-entering .fx-row,
+    .fx-progress span.is-live,
+    .fx-row__score b.is-turn {
+        animation: none !important;
+    }
+
+    .fx-row,
+    .fx-pill {
+        transition: none;
+    }
+}

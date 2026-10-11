@@ -1,0 +1,1237 @@
+﻿/* =================================================================
+   Doksan Artı — uygulama kabuğu (layout.css)
+   1  Tokenlar
+   2  Temel
+   3  LED tabela (dördüncü hakem panosu)
+   4  Açılış sahnesi
+   5  Header
+   6  Marka
+   7  Navigasyon
+   8  Roma saati
+   9  Maç dakikası çubuğu
+   10 Mobil menü düğmesi
+   11 Footer
+   12 Başa dön topu
+   13 Responsive
+   14 Hareket azaltma
+   ================================================================= */
+
+/* 1. Tokenlar */
+:root {
+    --da-bg: #070F1F;
+    --da-bg-2: #0B1730;
+    --da-surface: #0F1D38;
+    --da-surface-2: #142647;
+    --da-line: #1F3358;
+    --da-text: #E9F0FB;
+    --da-text-2: #C4D0E6;
+    --da-muted: #8B9CC0;
+    --da-dim: #6A7DA3;
+    --da-blue: #2E7BFF;
+    --da-blue-bright: #5B9BFF;
+    --da-blue-soft: rgba(46, 123, 255, .16);
+    --da-led-green: #3BFF8F;
+    --da-led-green-glow: rgba(59, 255, 143, .55);
+    --da-led-red: #FF4560;
+    --da-led-red-glow: rgba(255, 69, 96, .55);
+    --da-led-off: rgba(255, 255, 255, .06);
+    --da-board: #05080F;
+    --da-font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --da-font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+    --da-ease-out: cubic-bezier(.2, .8, .2, 1);
+    --da-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* 2. Temel */
+html {
+    scroll-behavior: smooth;
+}
+
+html, body {
+    background-color: var(--da-bg);
+}
+
+body {
+    font-family: var(--da-font-body);
+    color: var(--da-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+html.da-intro-active {
+    overflow: hidden;
+}
+
+::selection {
+    background: rgba(46, 123, 255, .45);
+    color: #fff;
+}
+
+.da-skip {
+    position: absolute;
+    left: 16px;
+    top: -60px;
+    z-index: 2000;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--da-blue);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top .2s ease;
+}
+
+    .da-skip:focus {
+        top: 12px;
+        color: #fff;
+    }
+
+.da-page {
+    min-height: 60vh;
+}
+
+/* Harf harf açılan yazılar için ortak parçalar */
+.da-char-mask {
+    display: inline-block;
+    overflow: hidden;
+    padding-bottom: .08em;
+    margin-bottom: -.08em;
+    vertical-align: top;
+}
+
+.da-char {
+    display: inline-block;
+}
+
+.da-space {
+    display: inline-block;
+    width: .26em;
+}
+
+/* 3. LED tabela */
+.da-led {
+    --dot: 3px;
+    --gap: 1px;
+    display: inline-flex;
+    gap: calc(var(--dot) * 1.4);
+}
+
+.da-led__char {
+    --led-on: var(--da-led-green);
+    --led-glow: var(--da-led-green-glow);
+    display: grid;
+    grid-template-columns: repeat(5, var(--dot));
+    grid-auto-rows: var(--dot);
+    gap: var(--gap);
+}
+
+    .da-led__char.is-red {
+        --led-on: var(--da-led-red);
+        --led-glow: var(--da-led-red-glow);
+    }
+
+    .da-led__char.is-white {
+        --led-on: #F4F7FF;
+        --led-glow: rgba(244, 247, 255, .5);
+    }
+    .da-led__char.is-blue {
+        --led-on: var(--da-blue-bright);
+        --led-glow: rgba(91, 155, 255, .5);
+    }
+
+    .da-led__char.is-amber {
+        --led-on: #FFC23D;
+        --led-glow: rgba(255, 194, 61, .5);
+    }
+
+.da-led__dot {
+    width: var(--dot);
+    height: var(--dot);
+    border-radius: 50%;
+    background: var(--da-led-off);
+    transition: background-color .12s linear, box-shadow .12s linear;
+}
+
+    .da-led__dot.is-on {
+        background: var(--led-on);
+        box-shadow: 0 0 calc(var(--dot) * 1.3) var(--led-glow);
+    }
+
+.da-led--xs {
+    --dot: 2px;
+    --gap: 1px;
+}
+
+.da-led--sm {
+    --dot: 3px;
+    --gap: 1px;
+}
+
+.da-led--md {
+    --dot: 5px;
+    --gap: 2px;
+}
+
+.da-led--xl {
+    --dot: clamp(7px, 1.6vw, 13px);
+    --gap: clamp(2px, .45vw, 4px);
+}
+
+.is-flash .da-led__dot.is-on {
+    animation: da-led-flash .45s steps(1) 3;
+}
+
+@keyframes da-led-flash {
+    50% {
+        background: var(--da-led-off);
+        box-shadow: none;
+    }
+}
+
+/* Tabela gövdesi + altındaki tutma sapı */
+.da-board {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #0B111E, var(--da-board));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), inset 0 1px 0 rgba(255, 255, 255, .08), 0 6px 16px rgba(0, 0, 0, .45);
+}
+
+    .da-board::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 100%;
+        width: 22%;
+        height: 5px;
+        transform: translateX(-50%);
+        border-radius: 0 0 3px 3px;
+        background: linear-gradient(180deg, #1A2338, #0B111E);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+    }
+
+.da-board--xl {
+    padding: clamp(14px, 2.4vw, 26px) clamp(18px, 3vw, 34px);
+    border-radius: 16px;
+}
+
+    .da-board--xl::after {
+        width: 16%;
+        height: clamp(26px, 5vw, 46px);
+        border-radius: 0 0 10px 10px;
+    }
+
+.da-board.is-refresh {
+    animation: da-board-nudge .5s var(--da-ease-spring);
+}
+
+@keyframes da-board-nudge {
+    0% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-3px) rotate(-2deg);
+    }
+
+    60% {
+        transform: translateY(1px) rotate(1deg);
+    }
+
+    100% {
+        transform: none;
+    }
+}
+
+/* 4. Açılış sahnesi */
+.da-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    place-items: center;
+    cursor: pointer;
+}
+
+html.da-intro-active .da-intro {
+    display: grid;
+}
+
+.da-intro__backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(900px 600px at 50% 45%, #0E1D3D 0%, #060C19 60%, #03060D 100%);
+    transition: opacity .55s ease;
+}
+
+.da-intro__beam {
+    position: absolute;
+    top: -6vh;
+    width: 140vmax;
+    height: 140vmax;
+    background: conic-gradient(from 160deg at 50% 0%, transparent 0deg, rgba(170, 200, 255, .17) 20deg, transparent 40deg);
+    transform-origin: 50% 0;
+    transform: rotate(var(--r));
+    opacity: 0;
+    animation: da-beam-on 1s linear .15s forwards, da-beam-sway 7s ease-in-out 1.2s infinite alternate;
+    pointer-events: none;
+}
+
+.da-intro__beam--left {
+    --r: -32deg;
+    left: -70vmax;
+}
+
+.da-intro__beam--right {
+    --r: 32deg;
+    right: -70vmax;
+    animation-delay: .32s, 1.4s;
+}
+
+@keyframes da-beam-on {
+    0% {
+        opacity: 0;
+    }
+
+    8% {
+        opacity: .7;
+    }
+
+    13% {
+        opacity: .05;
+    }
+
+    24% {
+        opacity: .9;
+    }
+
+    30% {
+        opacity: .25;
+    }
+
+    45%, 100% {
+        opacity: 1;
+    }
+}
+
+@keyframes da-beam-sway {
+    from {
+        transform: rotate(var(--r));
+    }
+
+    to {
+        transform: rotate(calc(var(--r) * .55));
+    }
+}
+
+.da-intro__haze {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: 70vmin;
+    height: 70vmin;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, rgba(46, 123, 255, .24), transparent);
+    animation: da-haze 3s ease-in-out infinite alternate;
+}
+
+@keyframes da-haze {
+    to {
+        transform: translate(-50%, -50%) scale(1.15);
+        opacity: .7;
+    }
+}
+
+.da-intro__stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+}
+
+.da-intro__board::before {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    border-radius: 22px;
+    box-shadow: 0 0 0 2px rgba(59, 255, 143, .6);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.da-intro__board.is-flash::before {
+    animation: da-ring 1s var(--da-ease-out) forwards;
+}
+
+@keyframes da-ring {
+    0% {
+        opacity: .9;
+        transform: scale(.96);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.25);
+    }
+}
+
+.da-intro__title {
+    display: flex;
+    margin: clamp(48px, 8vw, 78px) 0 0;
+    font-family: var(--da-font-display);
+    font-size: clamp(2.6rem, 7vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -.01em;
+    color: var(--da-text);
+    transition: opacity .25s ease;
+}
+
+    .da-intro__title .da-char {
+        transform: translateY(110%);
+        transition: transform .7s var(--da-ease-out) calc(var(--i) * 40ms);
+    }
+
+.da-intro.is-titled .da-intro__title .da-char {
+    transform: none;
+}
+
+.da-intro__caption {
+    margin: 14px 0 0;
+    color: var(--da-muted);
+    font-size: 1rem;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .45s ease .3s, transform .45s var(--da-ease-out) .3s;
+}
+
+.da-intro.is-titled .da-intro__caption {
+    opacity: 1;
+    transform: none;
+}
+
+.da-intro__hint {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    margin: 0;
+    transform: translateX(-50%);
+    color: var(--da-dim);
+    font-size: .8rem;
+    transition: opacity .25s ease;
+}
+
+.da-intro.is-leaving .da-intro__backdrop {
+    opacity: 0;
+}
+
+.da-intro.is-leaving .da-intro__title,
+.da-intro.is-leaving .da-intro__caption,
+.da-intro.is-leaving .da-intro__hint {
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+
+.da-intro.is-leaving {
+    pointer-events: none;
+}
+
+/* 5. Header */
+.da-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: linear-gradient(180deg, rgba(12, 24, 48, .95), rgba(9, 20, 42, .95));
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    backdrop-filter: blur(10px) saturate(140%);
+}
+
+.da-header__fx {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.da-header__stripes {
+    position: absolute;
+    inset: -40% -10%;
+    background: repeating-linear-gradient(115deg, rgba(255, 255, 255, .022) 0 28px, transparent 28px 56px);
+    animation: da-grass 30s linear infinite;
+}
+
+@keyframes da-grass {
+    to {
+        transform: translateX(-123.6px);
+    }
+}
+
+.da-header__light {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -40%), rgba(91, 155, 255, .2), transparent 70%);
+    opacity: 0;
+    transition: opacity .35s ease;
+}
+
+.da-header.is-lit .da-header__light {
+    opacity: 1;
+}
+
+.da-header__perimeter {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(91, 155, 255, .95), transparent) 0 0 / 35% 100% no-repeat, rgba(46, 123, 255, .28);
+    animation: da-perimeter 6s linear infinite;
+}
+
+@keyframes da-perimeter {
+    from {
+        background-position: -60% 0, 0 0;
+    }
+
+    to {
+        background-position: 160% 0, 0 0;
+    }
+}
+
+.da-header__inner {
+    position: relative;
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 14px 24px;
+    transition: padding .3s var(--da-ease-out);
+}
+
+.da-header.is-compact .da-header__inner {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* 6. Marka */
+.da-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-right: auto;
+    border-radius: 12px;
+    color: var(--da-text);
+    text-decoration: none;
+}
+
+    .da-brand:hover {
+        color: var(--da-text);
+    }
+
+    .da-brand:focus-visible {
+        outline: 2px solid var(--da-blue-bright);
+        outline-offset: 6px;
+    }
+
+.da-brand__board {
+    display: inline-flex;
+    padding-bottom: 5px;
+    transform-origin: left center;
+    transition: transform .3s var(--da-ease-out);
+}
+
+.da-header.is-compact .da-brand__board {
+    transform: scale(.86);
+}
+
+html.da-intro-active .da-brand__board {
+    opacity: 0;
+}
+
+.da-brand:hover .da-brand__board {
+    transform: translateY(-2px);
+}
+
+.da-header.is-compact .da-brand:hover .da-brand__board {
+    transform: scale(.86) translateY(-2px);
+}
+
+.da-brand__text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.da-wordmark {
+    display: flex;
+    font-family: var(--da-font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .005em;
+    transition: font-size .3s var(--da-ease-out);
+}
+
+.da-header.is-compact .da-wordmark {
+    font-size: 1.5rem;
+}
+
+.da-wordmark .da-char {
+    transform: translateY(110%);
+    transition: transform .6s var(--da-ease-out) calc(120ms + var(--i) * 38ms);
+}
+
+html.da-ready .da-wordmark .da-char {
+    transform: none;
+}
+
+html.da-settled .da-wordmark .da-char-mask {
+    overflow: visible;
+}
+
+html.da-settled .da-brand:hover .da-wordmark .da-char {
+    animation: da-wave .55s var(--da-ease-out) calc(var(--i) * 30ms);
+}
+
+@keyframes da-wave {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-18%);
+    }
+}
+
+.da-brand__tag {
+    max-height: 1.3em;
+    overflow: hidden;
+    color: var(--da-muted);
+    font-size: .75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    transition: max-height .3s ease, opacity .3s ease;
+}
+
+.da-header.is-compact .da-brand__tag {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* 7. Navigasyon */
+.da-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .03);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
+}
+
+.da-nav__indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(46, 123, 255, .34), rgba(46, 123, 255, .16));
+    box-shadow: inset 0 0 0 1px rgba(91, 155, 255, .55), 0 6px 18px rgba(46, 123, 255, .25);
+    opacity: 0;
+    transition: transform .45s var(--da-ease-spring), width .45s var(--da-ease-spring), opacity .2s ease;
+    pointer-events: none;
+}
+
+.da-nav__link {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    overflow: hidden;
+    border-radius: 999px;
+    color: var(--da-text-2);
+    font-size: .92rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .2s ease;
+}
+
+    .da-nav__link:hover,
+    .da-nav__link.is-active {
+        color: #fff;
+    }
+
+        .da-nav__link.is-active::after {
+            content: "";
+            position: absolute;
+            top: 7px;
+            right: 9px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--da-led-green);
+            box-shadow: 0 0 8px var(--da-led-green-glow);
+            animation: da-live 1.8s ease-in-out infinite;
+        }
+
+@keyframes da-live {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .35;
+    }
+}
+
+.da-nav__link:focus-visible {
+    outline: 2px solid var(--da-blue-bright);
+    outline-offset: 2px;
+}
+
+.da-nav__icon {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    transition: transform .35s var(--da-ease-spring);
+}
+
+.da-nav__link:hover .da-nav__icon {
+    transform: translateY(-2px) rotate(-8deg) scale(1.08);
+}
+
+.da-ripple {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .5);
+    pointer-events: none;
+    animation: da-ripple .6s ease-out forwards;
+}
+
+@keyframes da-ripple {
+    to {
+        transform: scale(16);
+        opacity: 0;
+    }
+}
+
+/* 8. Roma saati */
+.da-clock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: var(--da-board);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07);
+}
+
+.da-clock__label {
+    color: var(--da-dim);
+    font-size: .72rem;
+    font-weight: 600;
+}
+
+.da-clock__time {
+    color: var(--da-led-green);
+    font-family: var(--da-font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 10px var(--da-led-green-glow);
+}
+
+.da-clock__colon {
+    animation: da-blink 1s steps(1) infinite;
+}
+
+@keyframes da-blink {
+    50% {
+        opacity: .15;
+    }
+}
+
+/* 9. Maç dakikası çubuğu */
+.da-progress {
+    --p: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    pointer-events: none;
+}
+
+.da-progress__bar {
+    position: absolute;
+    inset: 0;
+    transform: scaleX(var(--p));
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--da-blue), var(--da-led-green));
+    box-shadow: 0 0 10px rgba(59, 255, 143, .45);
+}
+
+.da-progress__minute {
+    position: absolute;
+    top: 8px;
+    left: clamp(28px, calc(var(--p) * 100%), calc(100% - 28px));
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--da-board);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), 0 6px 14px rgba(0, 0, 0, .4);
+    color: var(--da-led-red);
+    font-family: var(--da-font-display);
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-shadow: 0 0 8px var(--da-led-red-glow);
+    opacity: 0;
+    transform: translate(-50%, -4px);
+    transition: opacity .25s ease, transform .25s ease;
+}
+
+.da-progress.is-active .da-progress__minute {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* 10. Mobil menü düğmesi */
+.da-nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .04);
+    box-shadow: inset 0 0 0 1px var(--da-line);
+    cursor: pointer;
+}
+
+    .da-nav-toggle span {
+        display: block;
+        height: 2px;
+        margin: 0 11px;
+        border-radius: 2px;
+        background: var(--da-text-2);
+        transition: transform .25s var(--da-ease-out), opacity .2s ease;
+    }
+
+    .da-nav-toggle[aria-expanded="true"] span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .da-nav-toggle[aria-expanded="true"] span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .da-nav-toggle[aria-expanded="true"] span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .da-nav-toggle:focus-visible {
+        outline: 2px solid var(--da-blue-bright);
+        outline-offset: 2px;
+    }
+
+/* 11. Footer */
+.da-footer {
+    position: relative;
+    margin-top: 72px;
+    padding: 56px 24px 28px;
+    overflow: hidden;
+    border-top: 1px solid var(--da-line);
+    background: linear-gradient(180deg, rgba(11, 23, 48, 0), rgba(11, 23, 48, .7));
+}
+
+.da-footer__pitch {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+    .da-footer__pitch path {
+        fill: none;
+        stroke: rgba(91, 155, 255, .16);
+        stroke-width: 1.5;
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        transition: stroke-dashoffset 1.8s var(--da-ease-out) var(--d, 0s);
+    }
+
+.da-footer.is-drawn .da-footer__pitch path {
+    stroke-dashoffset: 0;
+}
+
+.da-footer__spot {
+    fill: rgba(91, 155, 255, .25);
+}
+
+.da-footer__inner {
+    position: relative;
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 40px;
+}
+
+.da-footer__brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.da-footer__board {
+    flex: none;
+    margin-top: 4px;
+}
+
+.da-footer__name {
+    display: block;
+    font-family: var(--da-font-display);
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.da-footer__brand p {
+    max-width: 36ch;
+    margin: 10px 0 0;
+    color: var(--da-muted);
+    font-size: .9rem;
+    line-height: 1.55;
+}
+
+.da-footer__col h2 {
+    margin: 0 0 14px;
+    color: var(--da-text);
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+.da-footer__col ul {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.da-footer__col a {
+    position: relative;
+    color: var(--da-muted);
+    text-decoration: none;
+    transition: color .2s ease;
+}
+
+    .da-footer__col a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -2px;
+        height: 1px;
+        background: currentColor;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform .3s var(--da-ease-out);
+    }
+
+    .da-footer__col a:hover {
+        color: var(--da-text);
+    }
+
+        .da-footer__col a:hover::after {
+            transform: scaleX(1);
+        }
+
+.da-footer__facts {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+}
+
+    .da-footer__facts div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        max-width: 220px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .da-footer__facts dt {
+        color: var(--da-muted);
+        font-size: .88rem;
+        font-weight: 500;
+    }
+
+    .da-footer__facts dd {
+        margin: 0;
+        color: var(--da-text);
+        font-family: var(--da-font-display);
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+.da-footer__bottom {
+    position: relative;
+    max-width: 1240px;
+    margin: 44px auto 0;
+    padding-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    border-top: 1px solid rgba(255, 255, 255, .06);
+    color: var(--da-dim);
+    font-size: .8rem;
+}
+
+/* 12. Başa dön topu */
+.da-totop {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 45;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px) scale(.7);
+    pointer-events: none;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .45));
+    transition: opacity .3s ease, transform .4s var(--da-ease-spring);
+}
+
+    .da-totop.is-visible {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+    }
+
+        .da-totop.is-visible:hover {
+            transform: translateY(-4px);
+        }
+
+    .da-totop svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .da-totop:focus-visible {
+        outline: 2px solid var(--da-blue-bright);
+        outline-offset: 4px;
+    }
+
+.da-totop__tip {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: var(--da-board);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+    color: var(--da-text-2);
+    font-size: .78rem;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(6px, -50%);
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: none;
+}
+
+.da-totop:hover .da-totop__tip,
+.da-totop:focus-visible .da-totop__tip {
+    opacity: 1;
+    transform: translate(0, -50%);
+}
+
+/* 13. Responsive */
+@media (max-width: 960px) {
+    .da-clock {
+        display: none;
+    }
+}
+
+@media (max-width: 860px) {
+    .da-nav-toggle {
+        display: inline-flex;
+    }
+
+    .da-nav {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 12px;
+        right: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        padding: 8px;
+        border-radius: 18px;
+        background: rgba(9, 20, 42, .98);
+        box-shadow: inset 0 0 0 1px var(--da-line), 0 24px 48px rgba(0, 0, 0, .5);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px) scale(.98);
+        transform-origin: top center;
+        transition: opacity .25s ease, transform .3s var(--da-ease-out), visibility 0s linear .3s;
+    }
+
+        .da-nav[data-open="true"] {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            transition: opacity .25s ease, transform .3s var(--da-ease-out), visibility 0s;
+        }
+
+    .da-nav__indicator {
+        display: none;
+    }
+
+    .da-nav__link {
+        padding: 14px 16px;
+        border-radius: 12px;
+        font-size: 1rem;
+    }
+
+        .da-nav__link.is-active {
+            background: var(--da-blue-soft);
+            box-shadow: inset 0 0 0 1px rgba(91, 155, 255, .45);
+        }
+
+            .da-nav__link.is-active::after {
+                top: 50%;
+                right: 16px;
+                margin-top: -2.5px;
+            }
+
+    .da-nav[data-open="true"] .da-nav__link {
+        animation: da-menu-in .35s var(--da-ease-out) both;
+    }
+
+        .da-nav[data-open="true"] .da-nav__link:nth-child(3) {
+            animation-delay: .05s;
+        }
+
+        .da-nav[data-open="true"] .da-nav__link:nth-child(4) {
+            animation-delay: .1s;
+        }
+
+    .da-footer__inner {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .da-footer__brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@keyframes da-menu-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .da-header__inner {
+        padding-left: 16px;
+        padding-right: 16px;
+        gap: 12px;
+    }
+
+    .da-brand {
+        gap: 12px;
+    }
+
+    .da-wordmark {
+        font-size: 1.45rem;
+    }
+
+    .da-led--sm {
+        --dot: 2.5px;
+    }
+
+    .da-footer__inner {
+        grid-template-columns: 1fr;
+    }
+
+    .da-totop {
+        right: 14px;
+        bottom: 14px;
+        width: 46px;
+        height: 46px;
+    }
+}
+
+@media (max-width: 400px) {
+    .da-brand__tag {
+        display: none;
+    }
+}
+
+/* 14. Hareket azaltma */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .da-header__stripes,
+    .da-header__perimeter,
+    .da-nav__link.is-active::after,
+    .da-clock__colon,
+    .da-board.is-refresh,
+    .is-flash .da-led__dot.is-on {
+        animation: none !important;
+    }
+
+    .da-wordmark .da-char,
+    .da-nav__indicator,
+    .da-nav,
+    .da-brand__board,
+    .da-totop,
+    .da-footer__pitch path {
+        transition: none !important;
+    }
+
+    .da-wordmark .da-char {
+        transform: none !important;
+    }
+
+    .da-footer__pitch path {
+        stroke-dashoffset: 0 !important;
+    }
+
+    .da-ripple {
+        display: none;
+    }
+}

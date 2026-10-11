@@ -1,0 +1,229 @@
+﻿@model MyAcademy_WebUiProject.Models.Admin.AdminSnapshot
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Maçlar";
+    ViewData["BodyClass"] = "tm-page-matches";
+}
+
+<div class="tm-page">
+    <header class="tm-head">
+        <div class="tm-head__text">
+            <h1 class="tm-title">Maçlar</h1>
+            <p class="tm-lead">Fikstüre maç ekle, skorları ve durumları güncelle. Kaydettiğin her şey puan durumuna ve fikstüre anında yansır.</p>
+        </div>
+        <div class="tm-head__actions">
+            <button type="button" class="tm-btn tm-btn--primary" data-match-new>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-plus" /></svg>
+                Yeni maç
+            </button>
+        </div>
+    </header>
+
+    @if (Model.Error != null)
+    {
+        <div class="tm-banner tm-banner--danger" role="alert">
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+            <p>@Model.Error</p>
+        </div>
+    }
+
+    <!-- Sezon şeridi: 38 hafta, her hafta ne kadar dolu -->
+    <nav class="tm-rail" aria-label="Hafta seçimi">
+        <div class="tm-rail__track" data-week-rail></div>
+    </nav>
+
+    <section class="tm-panel tm-panel--flush" aria-label="Maç listesi">
+        <div class="tm-toolbar">
+            <label class="tm-field tm-field--search">
+                <span class="visually-hidden">Takım ara</span>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-search" /></svg>
+                <input class="tm-input" type="search" placeholder="Takım ya da stadyum ara" autocomplete="off" data-match-search>
+            </label>
+            <label class="tm-field">
+                <span class="visually-hidden">Durum</span>
+                <select class="tm-input tm-select" data-match-status>
+                    <option value="">Tüm durumlar</option>
+                    <option value="Planlandi">Planlandı</option>
+                    <option value="Oynaniyor">Canlı</option>
+                    <option value="Tamamlandi">Tamamlandı</option>
+                    <option value="Ertelendi">Ertelendi</option>
+                </select>
+            </label>
+            <button type="button" class="tm-chip tm-chip--warn" data-match-overdue aria-pressed="false" hidden>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-alert" /></svg>
+                <span data-overdue-label>Sonuç bekleyen</span>
+            </button>
+        </div>
+
+        <div class="tm-tablewrap">
+            <table class="tm-table tm-table--matches">
+                <caption class="visually-hidden">Maç listesi</caption>
+                <thead>
+                    <tr>
+                        <th scope="col" class="tm-col-id">ID</th>
+                        <th scope="col">Tarih</th>
+                        <th scope="col" class="tm-col-home">Ev sahibi</th>
+                        <th scope="col" class="tm-col-score">Skor</th>
+                        <th scope="col">Deplasman</th>
+                        <th scope="col" class="tm-col-stadium">Stadyum</th>
+                        <th scope="col">Durum</th>
+                        <th scope="col" class="tm-col-actions"><span class="visually-hidden">İşlemler</span></th>
+                    </tr>
+                </thead>
+                <tbody data-match-rows></tbody>
+            </table>
+        </div>
+
+        <div class="tm-empty-state" data-match-empty hidden>
+            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-ball" /></svg>
+            <strong data-match-empty-title>Bu filtreyle eşleşen maç yok</strong>
+            <p data-match-empty-text>Aramayı temizle ya da başka bir hafta seç.</p>
+            <button type="button" class="tm-btn tm-btn--ghost tm-btn--small" data-match-empty-action>Filtreleri temizle</button>
+        </div>
+
+        <footer class="tm-panel__foot">
+            <span data-match-count></span>
+            <span>Saatler Türkiye saatine göre</span>
+        </footer>
+    </section>
+</div>
+
+<!-- ===================== Maç formu (skorbord) ===================== -->
+<dialog class="tm-modal tm-modal--wide" id="tmMatchModal" aria-labelledby="tmMatchModalTitle">
+    <form class="tm-modal__form" data-match-form novalidate>
+        <header class="tm-modal__head">
+            <div>
+                <h2 class="tm-modal__title" id="tmMatchModalTitle" data-match-modal-title>Yeni maç</h2>
+                <p class="tm-modal__sub" data-match-modal-sub>Takımları seç, tarihi gir, durumu belirle.</p>
+            </div>
+            <button type="button" class="tm-iconbtn" data-modal-close aria-label="Kapat">
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-x" /></svg>
+            </button>
+        </header>
+
+        <div class="tm-modal__body">
+            <div class="tm-alert" data-form-alert role="alert" hidden></div>
+            <input type="hidden" name="id">
+
+            <!-- Durum -->
+            <fieldset class="tm-status" data-field="status">
+                <legend class="tm-label">Maç durumu</legend>
+                <div class="tm-status__options">
+                    <label class="tm-status__opt tm-status__opt--Planlandi">
+                        <input type="radio" name="status" value="Planlandi" checked>
+                        <span><i aria-hidden="true"></i>Planlandı</span>
+                    </label>
+                    <label class="tm-status__opt tm-status__opt--Oynaniyor">
+                        <input type="radio" name="status" value="Oynaniyor">
+                        <span><i aria-hidden="true"></i>Canlı</span>
+                    </label>
+                    <label class="tm-status__opt tm-status__opt--Tamamlandi">
+                        <input type="radio" name="status" value="Tamamlandi">
+                        <span><i aria-hidden="true"></i>Tamamlandı</span>
+                    </label>
+                    <label class="tm-status__opt tm-status__opt--Ertelendi">
+                        <input type="radio" name="status" value="Ertelendi">
+                        <span><i aria-hidden="true"></i>Ertelendi</span>
+                    </label>
+                </div>
+                <p class="tm-error" data-error-for="status"></p>
+            </fieldset>
+
+            <!-- Skorbord -->
+            <div class="tm-scoreboard is-off" data-scoreboard>
+                <div class="tm-scoreboard__team" data-field="homeTeamId">
+                    <span class="tm-scoreboard__side">Ev sahibi</span>
+                    <div class="tm-scoreboard__crest" data-crest="home"></div>
+                    <label class="visually-hidden" for="tmHome">Ev sahibi takım</label>
+                    <select class="tm-input tm-select tm-scoreboard__select" id="tmHome" name="homeTeamId" data-team-select="home"></select>
+                    <p class="tm-error" data-error-for="homeTeamId"></p>
+                </div>
+
+                <div class="tm-scoreboard__center">
+                    <div class="tm-stepper" data-stepper="home" data-field="homeScore" role="group" aria-label="Ev sahibi skoru">
+                        <button type="button" class="tm-stepper__btn" data-step="1" aria-label="Ev sahibi golünü artır">
+                            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chev-up" /></svg>
+                        </button>
+                        <span class="da-board tm-stepper__board" tabindex="0" data-stepper-board>
+                            <span class="da-led da-led--md" data-stepper-led></span>
+                        </span>
+                        <button type="button" class="tm-stepper__btn" data-step="-1" aria-label="Ev sahibi golünü azalt">
+                            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chev-down" /></svg>
+                        </button>
+                        <input type="hidden" name="homeScore" data-stepper-input>
+                        <output class="visually-hidden" data-stepper-output aria-live="polite"></output>
+                    </div>
+
+                    <span class="tm-scoreboard__colon" aria-hidden="true"><i></i><i></i></span>
+
+                    <div class="tm-stepper" data-stepper="away" data-field="awayScore" role="group" aria-label="Deplasman skoru">
+                        <button type="button" class="tm-stepper__btn" data-step="1" aria-label="Deplasman golünü artır">
+                            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chev-up" /></svg>
+                        </button>
+                        <span class="da-board tm-stepper__board" tabindex="0" data-stepper-board>
+                            <span class="da-led da-led--md" data-stepper-led></span>
+                        </span>
+                        <button type="button" class="tm-stepper__btn" data-step="-1" aria-label="Deplasman golünü azalt">
+                            <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-chev-down" /></svg>
+                        </button>
+                        <input type="hidden" name="awayScore" data-stepper-input>
+                        <output class="visually-hidden" data-stepper-output aria-live="polite"></output>
+                    </div>
+
+                    <p class="tm-scoreboard__note" data-score-note>Skor, maç başlayınca girilir.</p>
+                    <p class="tm-error tm-scoreboard__error" data-error-for="homeScore"></p>
+                    <p class="tm-error tm-scoreboard__error" data-error-for="awayScore"></p>
+                </div>
+
+                <div class="tm-scoreboard__team" data-field="awayTeamId">
+                    <span class="tm-scoreboard__side">Deplasman</span>
+                    <div class="tm-scoreboard__crest" data-crest="away"></div>
+                    <label class="visually-hidden" for="tmAway">Deplasman takımı</label>
+                    <select class="tm-input tm-select tm-scoreboard__select" id="tmAway" name="awayTeamId" data-team-select="away"></select>
+                    <p class="tm-error" data-error-for="awayTeamId"></p>
+                </div>
+            </div>
+
+            <!-- Zaman ve yer -->
+            <div class="tm-form-grid tm-form-grid--4">
+                <div class="tm-formfield" data-field="week">
+                    <label class="tm-label" for="tmWeek">Hafta</label>
+                    <input class="tm-input" id="tmWeek" name="week" type="number" min="1" max="38" inputmode="numeric" required>
+                    <p class="tm-error" data-error-for="week"></p>
+                </div>
+                <div class="tm-formfield" data-field="matchDate">
+                    <label class="tm-label" for="tmDate">Tarih</label>
+                    <input class="tm-input" id="tmDate" name="date" type="date" required>
+                    <p class="tm-error" data-error-for="matchDate"></p>
+                </div>
+                <div class="tm-formfield" data-field="time">
+                    <label class="tm-label" for="tmTime">Saat</label>
+                    <input class="tm-input" id="tmTime" name="time" type="time" step="300" required>
+                </div>
+                <div class="tm-formfield" data-field="stadium">
+                    <label class="tm-label" for="tmStadium">Stadyum</label>
+                    <input class="tm-input" id="tmStadium" name="stadium" type="text" maxlength="80" autocomplete="off" placeholder="Ev sahibinin stadyumu">
+                    <p class="tm-error" data-error-for="stadium"></p>
+                </div>
+            </div>
+            <p class="tm-hint tm-hint--conflict" data-week-conflict hidden></p>
+        </div>
+
+        <footer class="tm-modal__foot">
+            <a class="tm-btn tm-btn--ghost tm-modal__detail" data-match-detail-link href="#" target="_blank" rel="noopener" hidden>
+                <svg class="tm-icon" aria-hidden="true"><use href="#tm-i-eye" /></svg>
+                Maç sayfasını aç
+            </a>
+            <button type="button" class="tm-btn tm-btn--ghost" data-modal-close>Vazgeç</button>
+            <button type="submit" class="tm-btn tm-btn--primary" data-submit>
+                <span data-submit-label>Maçı ekle</span>
+            </button>
+        </footer>
+    </form>
+</dialog>
+
+<script type="application/json" id="tmSeed">@Json.Serialize(new { teams = Model.Teams, matches = Model.Matches })</script>
+
+@section Scripts {
+    <script src="~/js/admin-matches.js" asp-append-version="true"></script>
+}
