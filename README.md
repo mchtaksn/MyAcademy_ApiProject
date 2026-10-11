@@ -1,6 +1,5 @@
 ⚽ Doksan Artı: Serie A’yı son düdüğe kadar yaşatan bir web uygulaması
 
-M&Y Yazılım Eğitim Akademi bootcamp’indeki Serie A case’ini bitirdim. Hedefim sadece çalışan bir proje yapmak değildi, açan kişinin bir maçı stadyumdaymış gibi hissetmesiydi.
 
 🏗️ Mimari ve teknolojiler
 
